@@ -90,3 +90,32 @@ test("shapePath and esc produce safe output", () => {
   for (const g of GENERA) assert.match(shapePath(g.shape, 16), /^M[\d.\s\-LZahv]+Z$/);
   assert.equal(esc(`<b>"Birke"</b>`), "&#60;b&#62;&#34;Birke&#34;&#60;/b&#62;");
 });
+
+import { readFileSync } from "node:fs";
+import { addressQuery, parseAddressHits } from "../public/js/data.js";
+const addrFixture = JSON.parse(readFileSync(new URL("./fixtures/addr-search.json", import.meta.url)));
+
+test("addressQuery builds the payload of the Hamburg address search", () => {
+  assert.deepEqual(addressQuery("Birkengrund", 5), { id: "addr_search", params: { query_str: "Birkengrund", size: 5 } });
+});
+
+test("parseAddressHits reads a real response of the address search", () => {
+  const results = parseAddressHits(addrFixture, "Birkengrund");
+  assert.equal(results[0].name, "Birkengrund");
+  assert.equal(results[0].type, "street");
+  assert.ok(Math.abs(results[0].lon - 9.9533) < 0.001 && Math.abs(results[0].lat - 53.64) < 0.001);
+  assert.ok(results.some((r) => r.type === "address"));
+});
+
+test("parseAddressHits puts names starting with the query first and drops duplicates or broken hits", () => {
+  const hit = (name, type, coords) => ({ _source: { properties: { searchfield: name, type }, geometry: { coordinates: coords } } });
+  const response = { hits: { hits: [
+    hit("Am Birkengrund", "Street", [10, 53.6]),
+    hit("Birkengrund 3", "Address", [9.95, 53.64]),
+    hit("Birkengrund 3", "Address", [9.95, 53.64]),
+    hit("", "Street", [10, 53.6]),
+    hit("Kaputt", "Street", []),
+  ] } };
+  assert.deepEqual(parseAddressHits(response, "birkengrund").map((r) => r.name), ["Birkengrund 3", "Am Birkengrund"]);
+  assert.deepEqual(parseAddressHits({}, "x"), []);
+});
