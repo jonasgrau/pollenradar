@@ -1,0 +1,28 @@
+{
+  "updated": "2026-10-11",
+  "source": {
+    "name": "Straßenbaumkataster Hamburg",
+    "publisher": "Freie und Hansestadt Hamburg",
+    "url": "https://api.hamburg.de/datasets/v1/strassenbaumkataster",
+    "license": "Datenlizenz Deutschland – Namensnennung – Version 2.0",
+    "licenseUrl": "https://www.govdata.de/dl-de/by-2-0"
+  },
+  "genera": {
+    "birke": {
+      "name": "Birke",
+      "count": 8841
+    },
+    "erle": {
+      "name": "Erle",
+      "count": 3655
+    },
+    "hasel": {
+      "name": "Hasel",
+      "count": 3472
+    },
+    "esche": {
+      "name": "Esche",
+      "count": 7973
+    }
+  }
+}
