@@ -25,6 +25,14 @@
   <aside class="panel" id="panel" aria-label="Pollenflug und Bäume">
     <button class="grip" id="grip" type="button" aria-label="Bedienfeld aufziehen" aria-expanded="false" aria-controls="panel"></button>
 
+    <div class="search" role="search">
+      <label class="sr-only" for="search-input">Straße oder Adresse in Hamburg suchen</label>
+      <input id="search-input" class="search-input" type="search" placeholder="Straße oder Adresse suchen …"
+        role="combobox" aria-expanded="false" aria-controls="search-results" aria-autocomplete="list"
+        autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" />
+      <ul class="search-results" id="search-results" role="listbox" aria-label="Suchergebnisse" hidden></ul>
+    </div>
+
     <header class="hero" aria-live="polite">
       <p class="kicker"><span>Heute in Hamburg</span><span id="date"></span></p>
       <h1 id="hero-title">Pollenkarte Hamburg</h1>
@@ -69,7 +77,10 @@
             <li>Pollenflug: <a href="https://www.dwd.de/pollenflug" rel="noopener">Deutscher Wetterdienst</a>, <a href="https://creativecommons.org/licenses/by/4.0/deed.de" rel="noopener">CC BY 4.0</a></li>
             <li>Bäume: Straßenbaumkataster, Freie und Hansestadt Hamburg, <a href="https://www.govdata.de/dl-de/by-2-0" rel="noopener">Datenlizenz Deutschland – Namensnennung 2.0</a> <span id="trees-updated"></span></li>
             <li>Karte: <a href="https://basemap.de" rel="noopener">basemap.de</a> / BKG</li>
+            <li>Adresssuche: Adressdienst der Freien und Hansestadt Hamburg</li>
           </ul>
+          <p><strong>Datenschutz</strong></p>
+          <p>Die Seite setzt keine Cookies und speichert deine Auswahl nur in deinem Browser. Der Hoster (Vercel) verarbeitet technisch notwendige Verbindungsdaten wie die IP-Adresse. Beim Laden der Hintergrundkarte geht deine IP-Adresse an basemap.de (BKG), bei der Suche der eingegebene Text an den Adressdienst der Stadt Hamburg. Dein Standort wird nur nach deiner Freigabe genutzt, um den Umkreis zu berechnen, und nirgendwohin gesendet.</p>
         </div>
       </details>
     </section>
