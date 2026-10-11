@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Entwurf A · Karte</title>
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" />
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<style>
+  :root {
+    --surface: #ffffff;
+    --text: #17181a;
+    --text-2: #55585e;
+    --text-3: #8a8d93;
+    --rule: #e6e7ea;
+    --chip: #f1f2f4;
+    --accent: #17181a;
+    --shadow: 0 1px 2px rgba(0,0,0,.06), 0 8px 28px rgba(0,0,0,.12);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--text); }
+  #map { position: fixed; inset: 0; }
+
+  .panel {
+    position: fixed; z-index: 2; top: 16px; left: 16px; width: 360px; max-height: calc(100% - 32px);
+    overflow-y: auto; background: var(--surface); border-radius: 16px; box-shadow: var(--shadow);
+  }
+  .panel section { padding: 14px 18px; border-top: 1px solid var(--rule); }
+  .panel header { padding: 16px 18px 12px; }
+  h1 { font-size: 18px; font-weight: 700; letter-spacing: -0.01em; }
+  .sub { font-size: 13px; color: var(--text-2); margin-top: 2px; }
+  h2 { font-size: 12px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 10px; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 999px;
+    border: 1px solid var(--rule); background: var(--surface); font: inherit; font-size: 14px; font-weight: 500;
+    color: var(--text-2); cursor: pointer;
+  }
+  .chip[aria-pressed="true"] { background: var(--chip); border-color: var(--text-3); color: var(--text); }
+  .chip[aria-pressed="false"] svg { opacity: .35; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { font-weight: 500; color: var(--text-3); text-align: left; padding: 0 0 6px; }
+  th:first-child { width: 72px; }
+  td { padding: 5px 6px 5px 0; vertical-align: middle; }
+  .gen { display: flex; align-items: center; gap: 6px; font-weight: 600; }
+  .lvl { display: flex; flex-direction: column; gap: 3px; }
+  .bar { display: flex; gap: 2px; }
+  .bar i { width: 9px; height: 6px; border-radius: 2px; background: var(--rule); }
+  .lvl span { color: var(--text-2); font-size: 12px; }
+  .quiet { font-size: 14px; color: var(--text-2); line-height: 1.45; }
+  .meta { font-size: 12px; color: var(--text-3); margin-top: 8px; }
+
+  .around-hint { font-size: 14px; color: var(--text-2); line-height: 1.45; }
+  .around-list { list-style: none; display: grid; gap: 6px; }
+  .around-list li { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+  .around-list b { margin-left: auto; font-variant-numeric: tabular-nums; }
+  .link { background: none; border: 0; font: inherit; font-size: 13px; color: var(--text); text-decoration: underline; cursor: pointer; text-underline-offset: 3px; }
+
+  footer { padding: 12px 18px 16px; border-top: 1px solid var(--rule); font-size: 12px; color: var(--text-3); line-height: 1.45; }
+
+  .locate {
+    position: fixed; z-index: 2; top: 16px; right: 16px; padding: 10px 14px; border-radius: 999px; border: 0;
+    background: var(--accent); color: #fff; font: inherit; font-size: 14px; font-weight: 600; box-shadow: var(--shadow); cursor: pointer;
+  }
+  .maplibregl-popup-content { font: 13px/1.4 system-ui, sans-serif; border-radius: 10px; padding: 10px 12px; }
+  .maplibregl-popup-content span { color: var(--text-2); }
+
+  @media (max-width: 640px) {
+    .panel { top: auto; bottom: 0; left: 0; right: 0; width: auto; max-height: 48vh; border-radius: 16px 16px 0 0; }
+    .locate { top: 12px; right: 12px; }
+  }
+</style>
+</head>
+<body>
+<div id="map" role="region" aria-label="Karte der Straßenbäume"></div>
+<button class="locate" id="locate" type="button">◎ Mein Standort</button>
+
+<aside class="panel">
+  <header>
+    <h1>Pollenkarte Hamburg</h1>
+    <p class="sub">Pollenflug heute und die Straßenbäume in deiner Nähe</p>
+  </header>
+  <section>
+    <h2>Meine Allergien</h2>
+    <div class="chips" id="chips"></div>
+  </section>
+  <section>
+    <h2>Vorhersage DWD</h2>
+    <div id="forecast"></div>
+  </section>
+  <section>
+    <h2>Im Umkreis von 250 m</h2>
+    <div id="around"><p class="around-hint">Tippe auf die Karte oder nutze „Mein Standort“. <button class="link" id="example" type="button">Beispiel: Birkengrund, Niendorf</button></p></div>
+  </section>
+  <footer>Nur Straßenbäume – Bäume in Parks und Gärten fehlen. Daten: Straßenbaumkataster Hamburg, Deutscher Wetterdienst. Keine medizinische Beratung.</footer>
+</aside>
+
+<script type="module">
+  import {
+    HAMBURG, EXAMPLE_SPOT, GENERA, DAYS, level, loadPollen, loadGenus, toGeoJSON, flyingToday,
+    countAround, addTreeLayers, addRadiusLayers, showRadius, treePopupHtml, shapeSvg, panelPadding,
+  } from "./shared.js";
+
+  const KEY = "pollen.auswahl";
+  let selected = new Set(JSON.parse(localStorage.getItem(KEY) || '["birke","esche"]'));
+  let pollen = null;
+  let datasets = [];
+  let spot = null;
+
+  const map = new maplibregl.Map({
+    container: "map",
+    style: "https://sgx.geodatenzentrum.de/gdz_basemapde_vektor/styles/bm_web_gry.json",
+    center: HAMBURG.center,
+    zoom: HAMBURG.zoom,
+    attributionControl: { compact: true },
+  });
+  const mapReady = new Promise((resolve) => map.once("load", resolve));
+  map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "bottom-right");
+
+  function renderChips() {
+    document.getElementById("chips").innerHTML = GENERA.map((g) => `
+      <button class="chip" type="button" data-id="${g.id}" aria-pressed="${selected.has(g.id)}">
+        ${shapeSvg(g.shape, g.light)}${g.name}
+      </button>`).join("");
+  }
+
+  function renderForecast() {
+    const el = document.getElementById("forecast");
+    const rows = GENERA.filter((g) => selected.has(g.id));
+    if (!rows.length) { el.innerHTML = `<p class="quiet">Wähle oben aus, auf welche Pollen du reagierst.</p>`; return; }
+    const any = rows.some((g) => DAYS.some((d) => level(pollen.levels[g.name]?.[d.key]).step > 0));
+    const table = `<table><thead><tr><th></th>${DAYS.map((d) => `<th>${d.label}</th>`).join("")}</tr></thead><tbody>
+      ${rows.map((g) => `<tr><td><span class="gen">${shapeSvg(g.shape, g.light)}${g.name}</span></td>
+        ${DAYS.map((d) => {
+          const l = level(pollen.levels[g.name]?.[d.key]);
+          const bar = Array.from({ length: 6 }, (_, i) => `<i style="${i < l.step ? `background:${g.light}` : ""}"></i>`).join("");
+          return `<td><div class="lvl"><div class="bar" aria-hidden="true">${bar}</div><span>${l.label}</span></div></td>`;
+        }).join("")}</tr>`).join("")}
+    </tbody></table>`;
+    el.innerHTML = (any ? "" : `<p class="quiet">Zurzeit fliegen keine Baumpollen. Die Saison beginnt meist im Januar mit Hasel und Erle.</p><br>`) + table +
+      `<p class="meta">Stand: ${pollen.updated}</p>`;
+  }
+
+  function renderAround() {
+    if (!spot) return;
+    const { counts, nearest } = countAround(datasets, spot.lon, spot.lat);
+    const rows = GENERA.filter((g) => selected.has(g.id));
+    document.getElementById("around").innerHTML = `
+      <p class="around-hint" style="margin-bottom:10px">${spot.name}</p>
+      <ul class="around-list">${rows.map((g) => `<li>${shapeSvg(g.shape, g.light)}${g.name}<b>${counts[g.id] ?? 0}</b></li>`).join("")}</ul>
+      ${nearest && nearest.dist < 1000 ? `<p class="meta">Nächster Baum: ${nearest.art}, ${Math.round(nearest.dist)} m entfernt</p>` : ""}`;
+  }
+
+  async function refreshTrees() {
+    datasets = await Promise.all([...selected].map(loadGenus));
+    map.getSource("trees")?.setData(toGeoJSON(datasets, flyingToday(pollen)));
+    renderAround();
+  }
+
+  function setSpot(lon, lat, name) {
+    spot = { lon, lat, name };
+    showRadius(map, lon, lat);
+    renderAround();
+  }
+
+  document.getElementById("chips").addEventListener("click", (e) => {
+    const chip = e.target.closest(".chip");
+    if (!chip) return;
+    const id = chip.dataset.id;
+    selected.has(id) ? selected.delete(id) : selected.add(id);
+    localStorage.setItem(KEY, JSON.stringify([...selected]));
+    renderChips(); renderForecast(); refreshTrees();
+  });
+  document.getElementById("example").addEventListener("click", () => {
+    setSpot(EXAMPLE_SPOT.lon, EXAMPLE_SPOT.lat, EXAMPLE_SPOT.name);
+    map.flyTo({ center: [EXAMPLE_SPOT.lon, EXAMPLE_SPOT.lat], zoom: 15.5, padding: panelPadding() });
+  });
+  document.getElementById("locate").addEventListener("click", () => {
+    navigator.geolocation?.getCurrentPosition((p) => {
+      setSpot(p.coords.longitude, p.coords.latitude, "Dein Standort");
+      map.flyTo({ center: [p.coords.longitude, p.coords.latitude], zoom: 15.5, padding: panelPadding() });
+    });
+  });
+
+  // Das Bedienfeld wartet nicht auf die Karte
+  pollen = await loadPollen();
+  renderChips(); renderForecast();
+  datasets = await Promise.all([...selected].map(loadGenus));
+
+  mapReady.then(async () => {
+    addRadiusLayers(map, "#17181a");
+    // Herausgezoomt: kleine Punkte als Überblick
+    addTreeLayers(map, "light", { ring: "#ffffff" });
+    map.addLayer({
+      id: "trees-dots", type: "circle", source: "trees", maxzoom: 12.5,
+      paint: {
+        "circle-radius": ["interpolate", ["linear"], ["zoom"], 10, 1.2, 12.5, 2.2],
+        "circle-color": ["match", ["get", "g"], ...GENERA.flatMap((g) => [g.id, g.light]), "#888"],
+        "circle-opacity": ["case", ["boolean", ["get", "aktiv"], true], 0.85, 0.3],
+      },
+    });
+    await refreshTrees();
+    map.on("click", (e) => {
+      const hit = map.queryRenderedFeatures(e.point, { layers: ["trees"] })[0];
+      if (hit) new maplibregl.Popup({ offset: 10 }).setLngLat(hit.geometry.coordinates).setHTML(treePopupHtml(hit.properties)).addTo(map);
+      else setSpot(e.lngLat.lng, e.lngLat.lat, "Gewählter Punkt");
+    });
+    map.on("mouseenter", "trees", () => (map.getCanvas().style.cursor = "pointer"));
+    map.on("mouseleave", "trees", () => (map.getCanvas().style.cursor = ""));
+  });
+</script>
+</body>
+</html>
