@@ -1,10 +1,14 @@
-// Minimal static file server for local development
+// Local development server: static files plus the API routes that run as
+// Vercel functions in production
 //
 //   node scripts/serve.js [directory] [port]
 
 const http = require("http");
 const fs = require("fs/promises");
 const path = require("path");
+const { handlePollenRequest } = require("../lib/pollen");
+
+const API_ROUTES = { "/api/pollen": handlePollenRequest };
 
 const ROOT = path.resolve(process.argv[2] || "public");
 const PORT = Number(process.argv[3] || process.env.PORT || 8080);
@@ -22,6 +26,7 @@ const TYPES = {
 http
   .createServer(async (req, res) => {
     const { pathname } = new URL(req.url, "http://localhost");
+    if (API_ROUTES[pathname]) return API_ROUTES[pathname](req, res);
     const file = path.resolve(ROOT, "." + decodeURIComponent(pathname === "/" ? "/index.html" : pathname));
     if (!file.startsWith(ROOT + path.sep)) {
       res.writeHead(403).end();
