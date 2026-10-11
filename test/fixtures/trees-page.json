@@ -1,0 +1,83 @@
+{
+ "type": "FeatureCollection",
+ "numberMatched": 3655,
+ "numberReturned": 4,
+ "features": [
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "MultiPoint",
+    "coordinates": [
+     [
+      9.849861471243155,
+      53.528251513676715
+     ]
+    ]
+   },
+   "properties": {
+    "art_deutsch": "Schwarz-Erle",
+    "pflanzjahr": 1945,
+    "kronendurchmesser": 11
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "MultiPoint",
+    "coordinates": [
+     [
+      9.857710434294681,
+      53.52168451148639
+     ]
+    ]
+   },
+   "properties": {
+    "art_deutsch": "Schwarz-Erle",
+    "pflanzjahr": 1985,
+    "kronendurchmesser": 9
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "MultiPoint",
+    "coordinates": [
+     [
+      9.859967317738716,
+      53.52375732156448
+     ]
+    ]
+   },
+   "properties": {
+    "art_deutsch": "Schwarz-Erle",
+    "pflanzjahr": 1954,
+    "kronendurchmesser": 8
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "MultiPoint",
+    "coordinates": [
+     [
+      9.859583369226174,
+      53.52326319502355
+     ]
+    ]
+   },
+   "properties": {
+    "art_deutsch": "Schwarz-Erle",
+    "pflanzjahr": 1959,
+    "kronendurchmesser": 10
+   }
+  }
+ ],
+ "links": [
+  {
+   "href": "https://api.hamburg.de/datasets/v1/strassenbaumkataster/collections/strassenbaumkataster_hh/items?f=json&gattung_latein=Alnus&properties=geom%2Cart_deutsch%2Cpflanzjahr%2Ckronendurchmesser&limit=4&offset=4",
+   "rel": "next",
+   "type": "application/geo+json",
+   "title": "Nächste Seite"
+  }
+ ]
+}

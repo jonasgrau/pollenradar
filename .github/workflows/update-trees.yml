@@ -1,0 +1,40 @@
+name: Baumdaten aktualisieren
+
+# The city updates the tree cadastre once a year (as of 1 January); a monthly
+# check picks that up without anyone having to remember it. The script only
+# rewrites files when the data actually changed, so most runs commit nothing.
+on:
+  schedule:
+    - cron: "0 4 3 * *" # 3rd of every month, 04:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-trees
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm test
+      - name: Baumdaten laden
+        run: node scripts/fetch-trees.js
+      - name: Änderungen committen
+        run: |
+          if git diff --quiet -- public/data/trees; then
+            echo "Keine Änderungen an den Baumdaten."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/data/trees
+          git commit -m "Baumdaten aktualisieren ($(date -u +%Y-%m-%d))"
+          git push
