@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Pollenkarte Hamburg</title>
+  <meta name="description" content="Pollenflug heute in Hamburg und die allergierelevanten Straßenbäume in deiner Nähe: Birke, Erle, Hasel und Esche." />
+  <meta name="theme-color" content="#ffffff" />
+  <link rel="stylesheet" href="/vendor/maplibre-gl-4.7.1/maplibre-gl.css" />
+  <link rel="stylesheet" href="/css/app.css" />
+  <script src="/vendor/maplibre-gl-4.7.1/maplibre-gl.js" defer></script>
+  <script type="module" src="/js/app.js"></script>
+</head>
+<body>
+  <div id="map" role="region" aria-label="Karte der Straßenbäume"></div>
+
+  <button class="locate" id="locate" type="button">◎ Mein Standort</button>
+
+  <div class="density" id="density" aria-hidden="true">
+    <strong>Dichte der gewählten Bäume</strong>
+    <div class="ramp"></div>
+    <div class="ramp-labels"><span>wenige</span><span>viele</span></div>
+  </div>
+
+  <aside class="panel" id="panel" aria-label="Pollenflug und Bäume">
+    <button class="grip" id="grip" type="button" aria-label="Bedienfeld aufziehen" aria-expanded="false" aria-controls="panel"></button>
+
+    <header class="hero" aria-live="polite">
+      <p class="kicker"><span>Heute in Hamburg</span><span id="date"></span></p>
+      <h1 id="hero-title">Pollenkarte Hamburg</h1>
+      <div id="hero-meter" class="hero-meter"></div>
+      <p id="hero-text" class="hero-text"></p>
+      <div class="chips" id="chips" role="group" aria-label="Meine Allergien"></div>
+    </header>
+
+    <section aria-labelledby="h-forecast">
+      <h2 id="h-forecast">Vorhersage DWD</h2>
+      <div id="forecast"></div>
+      <p class="meta" id="forecast-meta"></p>
+    </section>
+
+    <section aria-labelledby="h-around">
+      <h2 id="h-around">Im Umkreis von 250 m</h2>
+      <div class="btns">
+        <button class="btn primary" id="locate-panel" type="button">◎ Mein Standort</button>
+        <button class="btn" id="example" type="button">Beispiel: Birkengrund</button>
+      </div>
+      <p class="error" id="locate-error" hidden>Standort nicht verfügbar. Tippe stattdessen auf die Karte.</p>
+      <p class="error" id="trees-error" hidden>Die Baumdaten konnten nicht geladen werden.</p>
+      <div id="around" aria-live="polite"><p class="hint">Oder tippe auf die Karte.</p></div>
+    </section>
+
+    <section>
+      <details>
+        <summary><h2>Wann blüht was?</h2></summary>
+        <div class="calendar" id="calendar"></div>
+        <p class="meta">Typische Blütezeiten in Norddeutschland, je nach Wetter einige Wochen früher oder später.</p>
+      </details>
+    </section>
+
+    <section>
+      <details>
+        <summary><h2>Über diese Karte</h2></summary>
+        <div class="about">
+          <p>Die Karte zeigt die <strong>Straßenbäume</strong> der vier Arten, für die der Deutsche Wetterdienst eine Pollenvorhersage macht. Bäume in Parks, Gärten und Wäldern fehlen, die tatsächliche Belastung kann also höher sein.</p>
+          <p>Pollen fliegen weit. Die Bäume in der Nähe sind nur ein Teil der Belastung, die regionale Vorhersage zählt immer mit. Die Karte dient der Orientierung und ist keine medizinische Beratung.</p>
+          <p><strong>Datenquellen</strong></p>
+          <ul>
+            <li>Pollenflug: <a href="https://www.dwd.de/pollenflug" rel="noopener">Deutscher Wetterdienst</a>, <a href="https://creativecommons.org/licenses/by/4.0/deed.de" rel="noopener">CC BY 4.0</a></li>
+            <li>Bäume: Straßenbaumkataster, Freie und Hansestadt Hamburg, <a href="https://www.govdata.de/dl-de/by-2-0" rel="noopener">Datenlizenz Deutschland – Namensnennung 2.0</a> <span id="trees-updated"></span></li>
+            <li>Karte: <a href="https://basemap.de" rel="noopener">basemap.de</a> / BKG</li>
+          </ul>
+        </div>
+      </details>
+    </section>
+  </aside>
+</body>
+</html>
