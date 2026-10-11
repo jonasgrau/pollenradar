@@ -10,6 +10,7 @@
   "scripts": {
     "test": "node --test test/",
     "data:trees": "node scripts/fetch-trees.js",
+    "dev": "node scripts/serve.js public 3000",
     "drafts": "node scripts/serve.js entwuerfe 8080"
   }
 }
