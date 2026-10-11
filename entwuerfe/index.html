@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Pollenkarte · Entwürfe</title>
+<style>
+  :root { --bg: #e9eaec; --bar: #fff; --text: #16181b; --dim: #6b7079; --sel: #16181b; --sel-text: #fff; --seg: #f0f1f3; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #08090b; --bar: #15181c; --text: #eceef1; --dim: #8f96a0; --sel: #eceef1; --sel-text: #111; --seg: #1f2329; } }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: column; }
+  .bar { background: var(--bar); padding: 10px 16px; display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center; }
+  .title { font-weight: 700; font-size: 15px; margin-right: auto; }
+  .seg { display: inline-flex; background: var(--seg); border-radius: 8px; padding: 3px; }
+  .seg button { border: 0; background: none; font: inherit; font-size: 13px; font-weight: 600; color: var(--dim); padding: 6px 12px; border-radius: 6px; cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--sel); color: var(--sel-text); }
+  .desc { padding: 10px 16px 0; font-size: 14px; color: var(--dim); max-width: 920px; line-height: 1.45; }
+  .desc b { color: var(--text); }
+  .stage { flex: 1; display: flex; justify-content: center; padding: 14px 16px 16px; min-height: 0; }
+  iframe { border: 0; width: 100%; height: 100%; background: #fff; border-radius: 10px; box-shadow: 0 1px 2px rgba(0,0,0,.08), 0 8px 24px rgba(0,0,0,.08); }
+  .phone iframe { width: 390px; max-width: 100%; height: min(100%, 844px); border-radius: 28px; outline: 10px solid #111; }
+  a { color: inherit; font-size: 13px; }
+</style>
+</head>
+<body>
+  <div class="bar">
+    <div class="title">Pollenkarte · Entwürfe</div>
+    <div class="seg" id="draft">
+      <button data-v="d-kombination">D · Kombination</button>
+      <button data-v="a-karte">A · Karte</button>
+      <button data-v="b-vorhersage">B · Vorhersage</button>
+      <button data-v="c-dichte">C · Dichte</button>
+    </div>
+    <div class="seg" id="device"><button data-v="desktop">Desktop</button><button data-v="phone">Handy</button></div>
+    <div class="seg" id="data"><button data-v="beispiel">Beispiel April</button><button data-v="live">Live (heute)</button></div>
+    <a id="open" href="#" target="_blank">Einzeln öffnen ↗</a>
+  </div>
+  <p class="desc" id="desc"></p>
+  <div class="stage" id="stage"><iframe id="frame" title="Entwurf"></iframe></div>
+<script>
+  const descs = {
+    "d-kombination": "<b>Kombination:</b> die Karte aus A, die Dichte aus C und die Informationen aus B. Herausgezoomt zeigt eine Wärmekarte, wo die gewählten Bäume dicht stehen, ab Straßenebene jeden einzelnen Baum. Auf dem Handy zeigt die Leiste zuerst nur „Heute“ und lässt sich aufziehen.",
+    "a-karte": "<b>Karte zuerst:</b> wie die Parkkarte. Die Karte füllt den Bildschirm, ein schwebendes Feld zeigt Allergien, DWD-Vorhersage und den Umkreis. Auf dem Handy wird das Feld zur Leiste unten.",
+    "b-vorhersage": "<b>Vorhersage zuerst:</b> wie eine Wetter-App. Oben groß, was heute fliegt, darunter drei Tage, die Bäume in deiner Umgebung und ein Blühkalender.",
+    "c-dichte": "<b>Dichte:</b> dunkel und datenlastig. Seitenleiste mit Vorhersage und Umkreis als Balken, herausgezoomt zeigt eine Wärmekarte, wo die Bäume dicht stehen.",
+  };
+  const state = { draft: "d-kombination", device: innerWidth < 700 ? "phone" : "desktop", data: "beispiel" };
+  try { Object.assign(state, JSON.parse(sessionStorage.getItem("entwuerfe") || "{}")); } catch {}
+  function update() {
+    for (const k of ["draft", "device", "data"]) for (const b of document.querySelectorAll(`#${k} button`)) b.setAttribute("aria-pressed", b.dataset.v === state[k]);
+    const url = `${state.draft}.html${state.data === "beispiel" ? "?beispiel" : ""}`;
+    const frame = document.getElementById("frame");
+    if (frame.getAttribute("src") !== url) frame.src = url;
+    document.getElementById("open").href = url;
+    document.getElementById("stage").className = "stage " + state.device;
+    document.getElementById("desc").innerHTML = descs[state.draft];
+    try { sessionStorage.setItem("entwuerfe", JSON.stringify(state)); } catch {}
+  }
+  for (const k of ["draft", "device", "data"]) document.getElementById(k).addEventListener("click", (e) => {
+    const b = e.target.closest("button"); if (b) { state[k] = b.dataset.v; update(); }
+  });
+  update();
+</script>
+</body>
+</html>

@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Entwurf C · Dichte</title>
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" />
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<style>
+  :root {
+    --bg: #121315;
+    --panel: #1a1b1e;
+    --text: #f2f2f0;
+    --text-2: #b9b8b2;
+    --text-3: #85847e;
+    --rule: #2b2c30;
+    --empty: #2b2c30;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); display: grid; grid-template-columns: 360px 1fr; }
+  aside { background: var(--panel); border-right: 1px solid var(--rule); overflow-y: auto; padding: 22px 20px; display: flex; flex-direction: column; gap: 22px; }
+  #map { height: 100%; }
+
+  h1 { font-size: 20px; letter-spacing: -0.01em; }
+  .sub { color: var(--text-3); font-size: 13px; margin-top: 3px; }
+  h2 { font-size: 12px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 10px; }
+
+  .toggles { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .toggle { display: flex; align-items: center; gap: 8px; padding: 9px 10px; border-radius: 10px; border: 1px solid var(--rule);
+    background: transparent; color: var(--text-2); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-align: left; }
+  .toggle[aria-pressed="true"] { background: #25262a; color: var(--text); border-color: #45464c; }
+  .toggle[aria-pressed="false"] svg { opacity: .3; }
+  .toggle small { margin-left: auto; color: var(--text-3); font-weight: 500; font-variant-numeric: tabular-nums; }
+
+  .fc { display: grid; gap: 12px; }
+  .fc-row { display: grid; grid-template-columns: 64px 1fr; gap: 4px 10px; align-items: center; }
+  .fc-row .gen { display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: 14px; }
+  .today { display: flex; gap: 3px; }
+  .today i { flex: 1; height: 10px; border-radius: 3px; background: var(--empty); }
+  .fc-row small { grid-column: 2; font-size: 12px; color: var(--text-2); }
+  .quiet { color: var(--text-2); font-size: 14px; line-height: 1.45; }
+
+  .bars { display: grid; gap: 8px; }
+  .barrow { display: grid; grid-template-columns: 64px 1fr 34px; gap: 8px; align-items: center; font-size: 14px; }
+  .barrow .gen { display: flex; align-items: center; gap: 6px; font-weight: 600; }
+  .track { height: 10px; background: var(--empty); border-radius: 3px; overflow: hidden; }
+  .track i { display: block; height: 100%; border-radius: 0 4px 4px 0; }
+  .barrow b { text-align: right; font-variant-numeric: tabular-nums; }
+  .link { background: none; border: 0; color: var(--text); font: inherit; font-size: 13px; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+  .meta { color: var(--text-3); font-size: 12px; margin-top: 8px; line-height: 1.45; }
+  .legend { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-3); }
+  .ramp { flex: 1; height: 8px; border-radius: 3px; background: linear-gradient(90deg, rgba(255,160,60,0.15), #ff9a3c, #ffd27a); }
+
+  .maplibregl-popup-content { background: #222327; color: var(--text); font: 13px/1.4 system-ui, sans-serif; border-radius: 10px; }
+  .maplibregl-popup-tip { border-top-color: #222327 !important; }
+  .maplibregl-popup-content span { color: var(--text-2); }
+
+  @media (max-width: 760px) {
+    body { grid-template-columns: 1fr; grid-template-rows: 55vh auto; }
+    aside { order: 2; border-right: 0; border-top: 1px solid var(--rule); }
+    #map { order: 1; height: 55vh; }
+  }
+</style>
+</head>
+<body>
+<aside>
+  <div><h1>Pollenbäume Hamburg</h1><p class="sub">Straßenbaumkataster × DWD-Pollenflug</p></div>
+  <section><h2>Allergien · Bäume gesamt</h2><div class="toggles" id="toggles"></div></section>
+  <section><h2>Heute</h2><div class="fc" id="forecast"></div></section>
+  <section>
+    <h2>Umkreis 250 m</h2>
+    <div id="around"><p class="quiet">Klicke auf die Karte. <button class="link" id="example" type="button">Beispiel: Birkengrund</button></p></div>
+  </section>
+  <section>
+    <h2>Dichte</h2>
+    <div class="legend"><span>wenige</span><div class="ramp"></div><span>viele Bäume</span></div>
+    <p class="meta">Herausgezoomt zeigt die Karte, wo die gewählten Bäume dicht stehen. Ab Straßenebene erscheint jeder einzelne Baum. Nur Straßenbäume, keine Parks und Gärten.</p>
+  </section>
+</aside>
+<div id="map" role="region" aria-label="Karte der Straßenbäume"></div>
+
+<script type="module">
+  import {
+    HAMBURG, EXAMPLE_SPOT, GENERA, level, loadPollen, loadGenus, toGeoJSON, flyingToday, countAround,
+    addTreeLayers, addRadiusLayers, showRadius, treePopupHtml, shapeSvg, darkenStyle,
+  } from "./shared.js";
+
+  const KEY = "pollen.auswahl";
+  let selected = new Set(JSON.parse(localStorage.getItem(KEY) || '["birke","esche"]'));
+  let pollen, datasets = [], spot = null;
+  const totals = {};
+  const $ = (id) => document.getElementById(id);
+
+  const map = new maplibregl.Map({
+    container: "map",
+    style: "https://sgx.geodatenzentrum.de/gdz_basemapde_vektor/styles/bm_web_gry.json",
+    center: HAMBURG.center, zoom: HAMBURG.zoom, attributionControl: { compact: true },
+  });
+  const mapReady = new Promise((resolve) => map.once("load", resolve));
+  map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "bottom-right");
+
+  function renderToggles() {
+    $("toggles").innerHTML = GENERA.map((g) => `<button class="toggle" type="button" data-id="${g.id}" aria-pressed="${selected.has(g.id)}">
+      ${shapeSvg(g.shape, g.dark)}${g.name}<small>${totals[g.id]?.toLocaleString("de-DE") ?? ""}</small></button>`).join("");
+  }
+
+  function renderForecast() {
+    const rows = GENERA.filter((g) => selected.has(g.id));
+    const any = rows.some((g) => level(pollen.levels[g.name]?.today).step > 0);
+    $("forecast").innerHTML = (any ? "" : `<p class="quiet">Zurzeit keine Baumpollen. Saisonstart meist im Januar.</p>`) + rows.map((g) => {
+      const t = level(pollen.levels[g.name]?.today);
+      const next = `morgen ${level(pollen.levels[g.name]?.tomorrow).label}, übermorgen ${level(pollen.levels[g.name]?.dayafter).label}`;
+      return `<div class="fc-row"><span class="gen">${shapeSvg(g.shape, g.dark)}${g.name}</span>
+        <div class="today" aria-hidden="true">${Array.from({ length: 6 }, (_, i) => `<i style="${i < t.step ? `background:${g.dark}` : ""}"></i>`).join("")}</div>
+        <small><b>${t.label}</b> · ${next}</small></div>`;
+    }).join("") + `<p class="meta">DWD, Stand ${pollen.updated}</p>`;
+  }
+
+  function renderAround() {
+    if (!spot) return;
+    const { counts, nearest } = countAround(datasets, spot.lon, spot.lat);
+    const rows = GENERA.filter((g) => selected.has(g.id));
+    const max = Math.max(1, ...rows.map((g) => counts[g.id] || 0));
+    $("around").innerHTML = `<p class="quiet" style="margin-bottom:10px">${spot.name}</p><div class="bars">${rows.map((g) => `
+      <div class="barrow"><span class="gen">${shapeSvg(g.shape, g.dark)}${g.name}</span>
+      <div class="track"><i style="width:${((counts[g.id] || 0) / max) * 100}%;background:${g.dark}"></i></div><b>${counts[g.id] || 0}</b></div>`).join("")}</div>
+      ${nearest && nearest.dist < 1000 ? `<p class="meta">Nächster Baum: ${nearest.art}, ${Math.round(nearest.dist)} m</p>` : ""}`;
+  }
+
+  async function refreshTrees() {
+    datasets = await Promise.all([...selected].map(loadGenus));
+    map.getSource("trees")?.setData(toGeoJSON(datasets, flyingToday(pollen)));
+    renderAround();
+  }
+
+  function setSpot(lon, lat, name, fly) {
+    spot = { lon, lat, name };
+    showRadius(map, lon, lat);
+    if (fly) map.flyTo({ center: [lon, lat], zoom: 15.5 });
+    renderAround();
+  }
+
+  $("toggles").addEventListener("click", (e) => {
+    const t = e.target.closest(".toggle"); if (!t) return;
+    selected.has(t.dataset.id) ? selected.delete(t.dataset.id) : selected.add(t.dataset.id);
+    localStorage.setItem(KEY, JSON.stringify([...selected]));
+    renderToggles(); renderForecast(); refreshTrees();
+  });
+  $("example").addEventListener("click", () => setSpot(EXAMPLE_SPOT.lon, EXAMPLE_SPOT.lat, EXAMPLE_SPOT.name, true));
+
+  pollen = await loadPollen();
+  for (const g of GENERA) totals[g.id] = (await loadGenus(g.id)).trees.length;
+  renderToggles(); renderForecast();
+
+  mapReady.then(async () => {
+    darkenStyle(map);
+    addRadiusLayers(map, "#f2f2f0");
+    addTreeLayers(map, "dark", { ring: "#121315" });
+    map.addLayer({
+      id: "density", type: "heatmap", source: "trees", maxzoom: 14,
+      paint: {
+        "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 9, 3, 11, 6, 13, 12],
+        "heatmap-intensity": ["interpolate", ["linear"], ["zoom"], 9, 0.25, 13, 0.6],
+        "heatmap-opacity": ["interpolate", ["linear"], ["zoom"], 12.5, 0.75, 14, 0],
+        "heatmap-color": ["interpolate", ["linear"], ["heatmap-density"],
+          0, "rgba(255,160,60,0)", 0.15, "rgba(255,160,60,0.25)", 0.5, "#ff9a3c", 1, "#ffd27a"],
+      },
+    }, "trees");
+    await refreshTrees();
+    map.on("click", (e) => {
+      const hit = map.queryRenderedFeatures(e.point, { layers: ["trees"] })[0];
+      if (hit) new maplibregl.Popup({ offset: 10 }).setLngLat(hit.geometry.coordinates).setHTML(treePopupHtml(hit.properties)).addTo(map);
+      else setSpot(e.lngLat.lng, e.lngLat.lat, "Gewählter Punkt", false);
+    });
+  });
+</script>
+</body>
+</html>

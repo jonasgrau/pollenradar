@@ -1,0 +1,11 @@
+{
+ "source": "Beispiel",
+ "updated": "Beispielwerte für einen Apriltag",
+ "region": "Geest, Schleswig-Holstein und Hamburg",
+ "levels": {
+  "Birke": {"today": "2-3", "tomorrow": "3", "dayafter": "2"},
+  "Esche": {"today": "1-2", "tomorrow": "2", "dayafter": "1-2"},
+  "Erle": {"today": "0-1", "tomorrow": "0", "dayafter": "0"},
+  "Hasel": {"today": "0", "tomorrow": "0", "dayafter": "0"}
+ }
+}

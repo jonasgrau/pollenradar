@@ -1,0 +1,27 @@
+{
+ "source": "DWD",
+ "updated": "2026-10-11 11:00 Uhr",
+ "region": "Geest,Schleswig-Holstein und Hamburg",
+ "levels": {
+  "Hasel": {
+   "today": "0",
+   "tomorrow": "0",
+   "dayafter": "0"
+  },
+  "Erle": {
+   "today": "0",
+   "tomorrow": "0",
+   "dayafter": "0"
+  },
+  "Birke": {
+   "today": "0",
+   "tomorrow": "0",
+   "dayafter": "0"
+  },
+  "Esche": {
+   "today": "0",
+   "tomorrow": "0",
+   "dayafter": "0"
+  }
+ }
+}
