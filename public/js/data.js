@@ -96,3 +96,30 @@ export function circlePolygon(lon, lat, radius = RADIUS_M, steps = 64) {
   }
   return { type: "Feature", geometry: { type: "Polygon", coordinates: [ring] }, properties: {} };
 }
+
+// Official Hamburg address search (streets and house numbers, WGS84)
+export const ADDRESS_SEARCH_URL = "https://api.hamburg.de/addr_search";
+
+export function addressQuery(text, size = 8) {
+  return { id: "addr_search", params: { query_str: text, size } };
+}
+
+/**
+ * Turns the search response into [{ name, type, lon, lat }].
+ * Names starting with the typed text come first, otherwise the service's order is kept.
+ */
+export function parseAddressHits(response, query = "") {
+  const seen = new Set();
+  const results = [];
+  for (const hit of response?.hits?.hits || []) {
+    const source = hit._source || {};
+    const name = String(source.properties?.searchfield || "").trim();
+    const [lon, lat] = source.geometry?.coordinates || [];
+    if (!name || !Number.isFinite(lon) || !Number.isFinite(lat) || seen.has(name)) continue;
+    seen.add(name);
+    results.push({ name, type: source.properties?.type === "Address" ? "address" : "street", lon, lat });
+  }
+  const q = query.trim().toLocaleLowerCase("de");
+  const starts = (r) => (q && r.name.toLocaleLowerCase("de").startsWith(q) ? 0 : 1);
+  return results.map((r, i) => ({ r, i })).sort((a, b) => starts(a.r) - starts(b.r) || a.i - b.i).map(({ r }) => r);
+}
