@@ -1,6 +1,7 @@
 import { DEFAULT_SELECTION, DENSITY_UNTIL, EXAMPLE_SPOT, GENERA, RADIUS_M } from "./config.js";
 import { countAround, fetchJson, flyingToday, forecastFromToday, loadGenus, toGeoJSON } from "./data.js";
 import { createMap } from "./map.js";
+import { setupSearch } from "./search.js";
 import { aroundHtml, calendarHtml, chipsHtml, forecastHtml, heroContent, meter } from "./ui.js";
 
 const STORAGE_KEY = "pollenkarte.auswahl";
@@ -124,6 +125,11 @@ function locate() {
 }
 $("locate").addEventListener("click", locate);
 $("locate-panel").addEventListener("click", locate);
+setupSearch({
+  input: $("search-input"),
+  list: $("search-results"),
+  onSelect: (place) => setSpot(place.lon, place.lat, place.name, true),
+});
 $("example").addEventListener("click", () => setSpot(EXAMPLE_SPOT.lon, EXAMPLE_SPOT.lat, EXAMPLE_SPOT.name, true));
 
 $("grip").addEventListener("click", () => {
