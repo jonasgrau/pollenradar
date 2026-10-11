@@ -1,0 +1,15 @@
+{
+  "name": "hamburg-pollenkarte",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Pollenflug und allergierelevante Straßenbäume in Hamburg auf einer Karte",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test test/",
+    "data:trees": "node scripts/fetch-trees.js",
+    "drafts": "node scripts/serve.js entwuerfe 8080"
+  }
+}
