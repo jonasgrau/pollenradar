@@ -119,3 +119,13 @@ test("parseAddressHits puts names starting with the query first and drops duplic
   assert.deepEqual(parseAddressHits(response, "birkengrund").map((r) => r.name), ["Birkengrund 3", "Am Birkengrund"]);
   assert.deepEqual(parseAddressHits({}, "x"), []);
 });
+
+import { spotSummaryHtml } from "../public/js/ui.js";
+
+test("spotSummaryHtml lists the counts of the selected genera", () => {
+  const html = spotSummaryHtml({ name: "Birkengrund" }, { counts: { birke: 102, esche: 1 } }, new Set(["birke", "esche"]));
+  assert.match(html, /Birkengrund:/);
+  assert.match(html, /<b>102<\/b> Birke/);
+  assert.match(html, /<b>1<\/b> Esche/);
+  assert.equal(spotSummaryHtml({ name: "x" }, { counts: {} }, new Set()), "");
+});
