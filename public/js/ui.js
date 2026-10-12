@@ -1,7 +1,7 @@
 // HTML building blocks for the panel
 
 import { GENERA, MONTHS, SEASON } from "./config.js";
-import { levelOf } from "./data.js";
+import { levelOf, nextSeason } from "./data.js";
 
 export function esc(value) {
   return String(value ?? "").replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
@@ -34,6 +34,22 @@ export function meter(step, color) {
 }
 
 const DAY_LABELS = ["Heute", "Morgen", "Übermorgen"];
+const MONTH_NAMES = ["Januar", "Februar", "März", "April", "Mai", "Juni"];
+
+// "in 5 Tagen", "in rund 3 Wochen", "in rund 3 Monaten"
+export function untilText(days) {
+  if (days <= 1) return days === 1 ? "morgen" : "heute";
+  if (days < 14) return `in ${days} Tagen`;
+  if (days < 60) return `in rund ${Math.round(days / 7)} Wochen`;
+  return `in rund ${Math.round(days / 30.4)} Monaten`;
+}
+
+// e.g. "Hasel und Erle blühen meist ab Januar, in rund 3 Monaten."
+export function seasonText({ genera, month, days }) {
+  const names = genera.map((g) => g.name);
+  const subject = names.length > 1 ? `${names.slice(0, -1).join(", ")} und ${names.at(-1)} blühen` : `${names[0]} blüht`;
+  return `${subject} meist ab ${MONTH_NAMES[month]}, ${untilText(days)}.`;
+}
 
 export function heroContent(forecast, selected, pollenError) {
   const chosen = GENERA.filter((g) => selected.has(g.id));
@@ -41,14 +57,15 @@ export function heroContent(forecast, selected, pollenError) {
     return { title: "Vorhersage nicht erreichbar", step: 0, color: null, text: "Die Bäume auf der Karte sind trotzdem da. Wir versuchen es gleich erneut." };
   }
   if (!chosen.length) return { title: "Wähle deine Allergien", step: 0, color: null, text: "Dann zeigen wir, was heute fliegt." };
-  if (!forecast[0].levels) return { title: "Noch keine Vorhersage für heute", step: 0, color: null, text: "Der DWD aktualisiert täglich gegen 11 Uhr." };
 
   const top = chosen
     .map((g) => ({ g, level: levelOf(forecast[0], g) }))
     .sort((a, b) => (b.level?.step ?? -1) - (a.level?.step ?? -1))[0];
-  if (!top.level || top.level.step === 0) {
-    return { title: "Keine Baumpollen", step: 0, color: null, text: "Die Saison beginnt meist im Januar mit Hasel und Erle." };
-  }
+  const quiet = !top.level || top.level.step === 0;
+  const season = quiet && nextSeason(chosen, forecast[0].date);
+  if (season) return { title: "Pollenpause", step: 0, color: null, text: seasonText(season) };
+  if (!forecast[0].levels) return { title: "Noch keine Vorhersage für heute", step: 0, color: null, text: "Der DWD aktualisiert täglich gegen 11 Uhr." };
+  if (quiet) return { title: "Keine Baumpollen", step: 0, color: null, text: "Für deine Auswahl meldet der DWD heute keinen Pollenflug." };
   const later = [1, 2]
     .map((i) => levelOf(forecast[i], top.g))
     .map((l, i) => `${DAY_LABELS[i + 1].toLowerCase()} ${l ? l.label : "keine Angabe"}`)

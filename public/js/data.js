@@ -1,6 +1,6 @@
 // Loading and preparing data; no DOM access, so it can be tested in Node
 
-import { GENERA, RADIUS_M } from "./config.js";
+import { GENERA, RADIUS_M, SEASON } from "./config.js";
 
 // "2026-10-11" for the current day in Hamburg
 export function berlinDate(now = new Date()) {
@@ -29,6 +29,28 @@ export function levelOf(day, genus) {
 // Genera whose pollen is in the air today according to the DWD
 export function flyingToday(forecast) {
   return new Set(GENERA.filter((g) => (levelOf(forecast[0], g)?.step ?? 0) > 0).map((g) => g.id));
+}
+
+/**
+ * When none of the chosen genera is in season this month: the genera that
+ * start first, the month they usually start (0 = January) and the days until
+ * then. Returns null while at least one chosen genus is in season.
+ */
+export function nextSeason(genera, today = berlinDate()) {
+  const [year, month, day] = today.split("-").map(Number);
+  const now = Date.UTC(year, month - 1, day);
+  const starts = [];
+  for (const g of genera) {
+    const months = SEASON[g.id];
+    if (months[month - 1]) return null; // in season (only Jan–Jun are listed)
+    const start = months.findIndex((v) => v > 0);
+    const startYear = start < month - 1 ? year + 1 : year;
+    starts.push({ g, month: start, at: Date.UTC(startYear, start, 1) });
+  }
+  if (!starts.length) return null;
+  const first = Math.min(...starts.map((s) => s.at));
+  const earliest = starts.filter((s) => s.at === first);
+  return { genera: earliest.map((s) => s.g), month: earliest[0].month, days: Math.round((first - now) / 86_400_000) };
 }
 
 export async function fetchJson(url) {
