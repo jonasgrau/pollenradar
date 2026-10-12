@@ -2,7 +2,7 @@ import { DEFAULT_SELECTION, DENSITY_UNTIL, EXAMPLE_SPOT, GENERA, RADIUS_M } from
 import { countAround, fetchJson, flyingToday, forecastFromToday, loadGenus, toGeoJSON } from "./data.js";
 import { createMap } from "./map.js";
 import { setupSearch } from "./search.js";
-import { aroundHtml, calendarHtml, chipsHtml, forecastHtml, heroContent, meter } from "./ui.js";
+import { aroundHtml, calendarHtml, chipsHtml, forecastHtml, heroContent, meter, spotSummaryHtml } from "./ui.js";
 
 const STORAGE_KEY = "pollenkarte.auswahl";
 const $ = (id) => document.getElementById(id);
@@ -59,6 +59,9 @@ function renderAround() {
   if (!state.spot) return;
   const result = countAround(state.datasets, state.spot.lon, state.spot.lat, RADIUS_M);
   $("around").innerHTML = aroundHtml(state.spot, result, state.selected, RADIUS_M);
+  const summary = spotSummaryHtml(state.spot, result, state.selected);
+  $("spot-summary").innerHTML = summary;
+  $("spot-summary").hidden = !summary;
 }
 
 function renderAll() {

@@ -1,6 +1,6 @@
 // Map: basemap, density heatmap, tree markers, radius circle
 
-import { BASEMAP, DENSITY_COLORS, DENSITY_UNTIL, GENERA, HAMBURG } from "./config.js";
+import { BASEMAP, DENSITY_STOPS, DENSITY_UNTIL, GENERA, HAMBURG } from "./config.js";
 import { circlePolygon } from "./data.js";
 import { esc, shapePath } from "./ui.js";
 
@@ -54,8 +54,7 @@ export function createMap(container, { onPick, onZoom }) {
         "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 9, 3, 11, 7, 13, 14],
         "heatmap-intensity": ["interpolate", ["linear"], ["zoom"], 9, 0.3, 13, 0.8],
         "heatmap-opacity": ["interpolate", ["linear"], ["zoom"], DENSITY_UNTIL - 0.5, 0.8, DENSITY_UNTIL + 0.5, 0],
-        "heatmap-color": ["interpolate", ["linear"], ["heatmap-density"],
-          0, DENSITY_COLORS[0], 0.1, DENSITY_COLORS[1], 0.35, DENSITY_COLORS[2], 0.65, DENSITY_COLORS[3], 1, DENSITY_COLORS[4]],
+        "heatmap-color": ["interpolate", ["linear"], ["heatmap-density"], ...DENSITY_STOPS.flat()],
       },
     });
     map.addLayer({ id: "radius-fill", type: "fill", source: "radius", paint: { "fill-color": "#17181a", "fill-opacity": 0.06 } });
@@ -105,6 +104,9 @@ export function createMap(container, { onPick, onZoom }) {
           features: [circlePolygon(lon, lat), { type: "Feature", geometry: { type: "Point", coordinates: [lon, lat] }, properties: {} }],
         }),
       ),
-    flyTo: (lon, lat, padding) => map.flyTo({ center: [lon, lat], zoom: 15.5, padding }),
+    flyTo: (lon, lat, padding) => {
+      const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+      map.flyTo({ center: [lon, lat], zoom: 15.5, padding, animate: !reduced });
+    },
   };
 }

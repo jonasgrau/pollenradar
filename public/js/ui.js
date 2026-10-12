@@ -89,6 +89,14 @@ export function aroundHtml(spot, result, selected, radius) {
   return `<p class="hint">${esc(spot.name)} · Umkreis ${radius} m</p><div class="stats">${stats}</div>${nearest}`;
 }
 
+// Short line for the collapsed phone sheet, e.g. "Birkengrund: 102 Birken · 1 Esche"
+export function spotSummaryHtml(spot, result, selected) {
+  const chosen = GENERA.filter((g) => selected.has(g.id));
+  if (!chosen.length) return "";
+  const parts = chosen.map((g) => `<span>${shapeIcon(g, g.color, 12)}<b>${result.counts[g.id] ?? 0}</b> ${g.name}</span>`);
+  return `<span>${esc(spot.name)}:</span>${parts.join("")}`;
+}
+
 export function calendarHtml() {
   const head = `<span></span>${MONTHS.map((m) => `<span class="m">${m}</span>`).join("")}`;
   const rows = GENERA.map((g) => `<span class="gen">${shapeIcon(g)}${g.name}</span>${SEASON[g.id]

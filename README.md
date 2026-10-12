@@ -60,11 +60,17 @@ api/pollen.js    Vercel function
 
 The address search uses the city's official address service (`POST https://api.hamburg.de/addr_search`, the same one the Hamburg geoportal uses). It knows streets and house numbers, returns WGS84 coordinates and allows cross-origin requests, so the browser queries it directly; no search text goes to Google or other third parties.
 
-Zoomed out, a petrol heatmap shows where the selected trees cluster; from street level on each tree is a marker in its genus colour and shape. Trees whose pollen is not in the air today are dimmed.
+Zoomed out, a classic heatmap (blue = few, red = many trees) shows where the selected trees cluster; from street level on each tree is a marker in its genus colour and shape. Trees whose pollen is not in the air today are dimmed.
+
+## Automated checks
+
+- **Tests** (`test.yml`): `npm test` on every pull request and push to `main`.
+- **Tree data** (`update-trees.yml`): monthly refresh, commits only when the data changed.
+- **Live check** (`healthcheck.yml`): daily at 10:15 UTC (after the DWD update), `scripts/healthcheck.js` loads the live page, `/api/pollen`, the tree data and the external services the browser uses (basemap.de, the Hamburg address search). A failed run triggers GitHub's e-mail. The address comes from the repository variable `HEALTHCHECK_URL`; until it is set the job is skipped. Locally: `node scripts/healthcheck.js http://localhost:3000`.
 
 ## Deployment
 
-Vercel: import the GitHub repository with the default settings ("Other" framework, no build command). `vercel.json` sets `public/` as the output directory and the cache headers; `api/pollen.js` becomes a serverless function.
+Vercel: import the GitHub repository with the default settings ("Other" framework, no build command). `vercel.json` sets `public/` as the output directory and the cache headers; `api/pollen.js` becomes a serverless function. Afterwards set the repository variable `HEALTHCHECK_URL` to the production URL to enable the daily live check.
 
 ## Design drafts
 
