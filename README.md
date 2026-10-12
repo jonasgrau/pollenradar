@@ -76,6 +76,8 @@ When none of the chosen pollen types is in season and nothing is flying, the pan
 
 Vercel: import the GitHub repository with the default settings ("Other" framework, no build command). `vercel.json` sets `public/` as the output directory and the cache headers; `api/pollen.js` becomes a serverless function. Afterwards set the repository variable `HEALTHCHECK_URL` to the production URL to enable the daily live check.
 
+Page views are counted with Vercel Web Analytics (cookieless). `index.html` loads `/_vercel/insights/script.js` on every host except localhost; the script only exists once Analytics is enabled in the Vercel project (Analytics tab → Enable).
+
 ## Design drafts
 
 `entwuerfe/` keeps the four drafts that led to the design (`npm run drafts`, http://localhost:8080). They load MapLibre from a CDN and use a data snapshot; they are not part of the app.
