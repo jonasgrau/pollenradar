@@ -2,6 +2,8 @@
 
 Shows today's tree pollen forecast for Hamburg together with the allergy-relevant street trees (birch, alder, hazel, ash) around you.
 
+**Live:** https://hamburg-pollenkarte.vercel.app
+
 - **Pollen forecast:** Deutscher Wetterdienst (DWD), region "Geest, Schleswig-Holstein und Hamburg"
 - **Trees:** Straßenbaumkataster Hamburg (Urban Data Platform, `api.hamburg.de`)
 

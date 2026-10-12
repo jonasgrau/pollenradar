@@ -1,8 +1,8 @@
 // Tests for the browser modules that do not touch the DOM
 import test from "node:test";
 import assert from "node:assert/strict";
-import { berlinDate, forecastFromToday, flyingToday, toGeoJSON, countAround, distanceM, circlePolygon } from "../public/js/data.js";
-import { heroContent, shapePath, esc } from "../public/js/ui.js";
+import { berlinDate, forecastFromToday, flyingToday, toGeoJSON, countAround, distanceM, circlePolygon, nextSeason } from "../public/js/data.js";
+import { heroContent, shapePath, esc, seasonText, untilText } from "../public/js/ui.js";
 import { GENERA } from "../public/js/config.js";
 
 const lvl = (step, label) => ({ code: String(step), step, label });
@@ -50,7 +50,8 @@ test("heroContent names the strongest selected pollen", () => {
 
 test("heroContent covers quiet, missing and error cases", () => {
   const f = forecastFromToday(pollen, "2027-04-14");
-  assert.equal(heroContent(f, new Set(["erle"]), false).title, "Keine Baumpollen");
+  const calm = forecastFromToday({ days: [{ ...pollen.days[0], levels: { ...pollen.days[0].levels, Birke: lvl(0, "keine") } }] }, "2027-04-14");
+  assert.equal(heroContent(calm, new Set(["birke"]), false).title, "Keine Baumpollen");
   assert.equal(heroContent(f, new Set(), false).title, "Wähle deine Allergien");
   assert.equal(heroContent(forecastFromToday(pollen, "2027-05-01"), new Set(["birke"]), false).title, "Noch keine Vorhersage für heute");
   assert.equal(heroContent(f, new Set(["birke"]), true).title, "Vorhersage nicht erreichbar");
@@ -128,4 +129,48 @@ test("spotSummaryHtml lists the counts of the selected genera", () => {
   assert.match(html, /<b>102<\/b> Birke/);
   assert.match(html, /<b>1<\/b> Esche/);
   assert.equal(spotSummaryHtml({ name: "x" }, { counts: {} }, new Set()), "");
+});
+
+const byId = (...ids) => GENERA.filter((g) => ids.includes(g.id));
+
+test("nextSeason finds the next start outside the season", () => {
+  const s = nextSeason(byId("birke", "esche", "hasel", "erle"), "2026-10-12");
+  assert.deepEqual(s.genera.map((g) => g.id), ["erle", "hasel"]);
+  assert.equal(s.month, 0);
+  assert.equal(s.days, 81);
+  // Birch and ash start in March of the same year
+  const spring = nextSeason(byId("birke", "esche"), "2027-02-10");
+  assert.equal(spring.month, 2);
+  assert.equal(spring.days, 19);
+  // Erle has finished by April, so its next season is next January
+  assert.equal(nextSeason(byId("erle"), "2027-04-14").days, 262);
+});
+
+test("nextSeason returns null while a chosen genus is in season", () => {
+  assert.equal(nextSeason(byId("hasel"), "2027-01-20"), null);
+  assert.equal(nextSeason(byId("erle", "birke"), "2027-05-02"), null);
+  assert.equal(nextSeason([], "2027-05-02"), null);
+});
+
+test("seasonText and untilText phrase the wait", () => {
+  assert.equal(untilText(0), "heute");
+  assert.equal(untilText(1), "morgen");
+  assert.equal(untilText(5), "in 5 Tagen");
+  assert.equal(untilText(19), "in rund 3 Wochen");
+  assert.equal(untilText(81), "in rund 3 Monaten");
+  assert.equal(seasonText(nextSeason(byId("hasel", "erle"), "2026-10-12")), "Erle und Hasel blühen meist ab Januar, in rund 3 Monaten.");
+  assert.equal(seasonText(nextSeason(byId("birke"), "2027-02-25")), "Birke blüht meist ab März, in 4 Tagen.");
+});
+
+test("heroContent shows the season pause when nothing chosen is in season", () => {
+  const autumn = forecastFromToday({ days: [{ date: "2026-10-12", levels: { Birke: lvl(0, "keine"), Esche: lvl(0, "keine"), Erle: lvl(0, "keine"), Hasel: lvl(0, "keine") } }] }, "2026-10-12");
+  const hero = heroContent(autumn, new Set(["birke", "esche"]), false);
+  assert.equal(hero.title, "Pollenpause");
+  assert.equal(hero.text, "Birke und Esche blühen meist ab März, in rund 5 Monaten.");
+  // Also before the forecast has loaded, and Erle in April has finished
+  assert.equal(heroContent(forecastFromToday(null, "2026-10-12"), new Set(["hasel"]), false).title, "Pollenpause");
+  assert.equal(heroContent(forecastFromToday(pollen, "2027-04-14"), new Set(["erle"]), false).title, "Pollenpause");
+  // Hazel flying early in December beats the calendar
+  const december = forecastFromToday({ days: [{ date: "2026-12-20", levels: { Hasel: lvl(2, "gering") } }] }, "2026-12-20");
+  assert.equal(heroContent(december, new Set(["hasel"]), false).title, "Hasel: gering");
 });
