@@ -1,4 +1,4 @@
-import { DEFAULT_SELECTION, DENSITY_UNTIL, EXAMPLE_SPOT, GENERA, RADIUS_M } from "./config.js";
+import { DEFAULT_SELECTION, DENSITY_UNTIL, EXAMPLE_SPOT, GENERA, POLLEN, RADIUS_M } from "./config.js";
 import { countAround, fetchJson, flyingToday, forecastFromToday, loadGenus, toGeoJSON } from "./data.js";
 import { createMap } from "./map.js";
 import { setupSearch } from "./search.js";
@@ -10,7 +10,7 @@ const $ = (id) => document.getElementById(id);
 function readSelection() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    if (Array.isArray(saved)) return new Set(saved.filter((id) => GENERA.some((g) => g.id === id)));
+    if (Array.isArray(saved)) return new Set(saved.filter((id) => POLLEN.some((g) => g.id === id)));
   } catch {}
   return new Set(DEFAULT_SELECTION);
 }
@@ -75,7 +75,9 @@ function renderAll() {
 
 async function refreshTrees() {
   try {
-    state.datasets = await Promise.all([...state.selected].map(loadGenus));
+    const trees = GENERA.filter((g) => state.selected.has(g.id));
+    $("density").classList.toggle("no-trees", !trees.length);
+    state.datasets = await Promise.all(trees.map((g) => loadGenus(g.id)));
     $("trees-error").hidden = true;
   } catch {
     $("trees-error").hidden = false;
