@@ -1,6 +1,6 @@
 # Pollenkarte Hamburg
 
-Shows today's tree pollen forecast for Hamburg together with the allergy-relevant street trees (birch, alder, hazel, ash) around you.
+Shows today's pollen forecast for Hamburg together with the allergy-relevant street trees (birch, alder, hazel, ash) around you. Grasses, rye, mugwort and ragweed are part of the forecast too; they have no map layer because no register records them.
 
 **Live:** https://hamburg-pollenkarte.vercel.app
 
@@ -50,7 +50,7 @@ Pollen data: Deutscher Wetterdienst, [CC BY 4.0](https://creativecommons.org/lic
 public/
   index.html, css/app.css
   js/app.js      wiring and state
-  js/config.js   genera, colours, shapes, season calendar
+  js/config.js   tree genera and herbs, colours, shapes, season calendar
   js/data.js     forecast for the current day, tree loading, radius counts (tested in Node)
   js/map.js      MapLibre map: density heatmap, tree markers, radius
   js/ui.js       HTML building blocks for the panel
@@ -63,6 +63,8 @@ api/pollen.js    Vercel function
 The address search uses the city's official address service (`POST https://api.hamburg.de/addr_search`, the same one the Hamburg geoportal uses). It knows streets and house numbers, returns WGS84 coordinates and allows cross-origin requests, so the browser queries it directly; no search text goes to Google or other third parties.
 
 Zoomed out, a classic heatmap (blue = few, red = many trees) shows where the selected trees cluster; from street level on each tree is a marker in its genus colour and shape. Trees whose pollen is not in the air today are dimmed.
+
+When none of the chosen pollen types is in season and nothing is flying, the panel shows a "Pollenpause" with the next usual start (e.g. "Birke und Esche blühen meist ab März, in rund 5 Monaten.").
 
 ## Automated checks
 

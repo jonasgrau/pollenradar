@@ -57,6 +57,8 @@ h2 { font-size: 12px; font-weight: 600; color: var(--text-3); text-transform: up
 .hero-meter .meter i { height: 10px; }
 
 .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+.chips-label { flex-basis: 100%; font-size: 12px; color: var(--text-3); }
+.chips-label + .chip, .chip + .chips-label { margin-top: 2px; }
 .chip {
   display: inline-flex;
   align-items: center;
@@ -73,7 +75,7 @@ h2 { font-size: 12px; font-weight: 600; color: var(--text-3); text-transform: up
 .chip[aria-pressed="true"] { background: var(--text); border-color: var(--text); color: #fff; }
 .shape { flex: none; }
 
-.days { display: grid; grid-template-columns: 64px repeat(3, 1fr); gap: 6px 10px; align-items: center; font-size: 13px; }
+.days { display: grid; grid-template-columns: 92px repeat(3, 1fr); gap: 6px 10px; align-items: center; font-size: 13px; }
 .days .head { font-size: 12px; color: var(--text-3); }
 .days .gen, .calendar .gen { display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: 14px; }
 .days small { display: block; margin-top: 3px; font-size: 11px; line-height: 1.2; color: var(--text-2); }
@@ -96,7 +98,7 @@ details summary h2 { margin: 0; }
 details summary::after { content: "▾"; color: var(--text-3); }
 details[open] summary::after { content: "▴"; }
 
-.calendar { display: grid; grid-template-columns: 64px repeat(6, 1fr); gap: 4px 3px; align-items: center; margin-top: 12px; font-size: 13px; }
+.calendar { display: grid; grid-template-columns: 92px repeat(12, 1fr); gap: 4px 2px; align-items: center; margin-top: 12px; font-size: 13px; }
 .calendar .m { text-align: center; font-size: 11px; color: var(--text-3); }
 .calendar i { height: 10px; border-radius: 3px; background: var(--empty); }
 
@@ -173,7 +175,7 @@ details[open] summary::after { content: "▴"; }
   transition: opacity 0.2s;
 }
 .density strong { display: block; margin-bottom: 6px; font-size: 13px; color: var(--text); }
-.density.is-hidden { opacity: 0; }
+.density.is-hidden, .density.no-trees { opacity: 0; }
 .ramp { height: 8px; border-radius: 3px; background: linear-gradient(90deg, #4169e1, #00bcd4, #4caf50, #ffeb3b, #ff9800, #e53935); }
 .ramp-labels { display: flex; justify-content: space-between; margin-top: 4px; }
 
