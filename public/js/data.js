@@ -23,10 +23,10 @@ export function forecastFromToday(pollen, today = berlinDate()) {
 }
 
 export function levelOf(day, genus) {
-  return day?.levels?.[genus.name] ?? null;
+  return day?.levels?.[genus.dwd ?? genus.name] ?? null;
 }
 
-// Genera whose pollen is in the air today according to the DWD
+// Tree genera whose pollen is in the air today according to the DWD
 export function flyingToday(forecast) {
   return new Set(GENERA.filter((g) => (levelOf(forecast[0], g)?.step ?? 0) > 0).map((g) => g.id));
 }
@@ -42,7 +42,7 @@ export function nextSeason(genera, today = berlinDate()) {
   const starts = [];
   for (const g of genera) {
     const months = SEASON[g.id];
-    if (months[month - 1]) return null; // in season (only Jan–Jun are listed)
+    if (months[month - 1]) return null; // in season
     const start = months.findIndex((v) => v > 0);
     const startYear = start < month - 1 ? year + 1 : year;
     starts.push({ g, month: start, at: Date.UTC(startYear, start, 1) });
