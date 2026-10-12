@@ -25,5 +25,13 @@ export const SEASON = {
   esche: [0, 0, 1, 2, 1, 0],
 };
 
-// Density in petrol: stands apart from the basemap and the genus colours
-export const DENSITY_COLORS = ["rgba(15,94,107,0)", "rgba(79,163,173,0.45)", "#2c8c98", "#0f5e6b", "#08404a"];
+// Density as a classic heatmap, from few (blue) to many trees (red): [density, colour]
+export const DENSITY_STOPS = [
+  [0, "rgba(33,102,172,0)"],
+  [0.1, "rgba(65,105,225,0.55)"],
+  [0.3, "#00bcd4"],
+  [0.5, "#4caf50"],
+  [0.7, "#ffeb3b"],
+  [0.85, "#ff9800"],
+  [1, "#e53935"],
+];

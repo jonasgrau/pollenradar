@@ -1,0 +1,22 @@
+name: Live-Prüfung
+
+# Daily check of the live site and the services the app depends on.
+# The address comes from the repository variable HEALTHCHECK_URL
+# (Settings → Secrets and variables → Actions → Variables); until it is
+# set, the job is skipped.
+on:
+  schedule:
+    - cron: "15 10 * * *" # 10:15 UTC, after the DWD's daily update around 11:00 local time
+  workflow_dispatch:
+
+jobs:
+  healthcheck:
+    if: vars.HEALTHCHECK_URL != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node scripts/healthcheck.js "${{ vars.HEALTHCHECK_URL }}"
