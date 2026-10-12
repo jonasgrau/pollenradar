@@ -6,6 +6,13 @@
   <title>Pollenkarte Hamburg</title>
   <meta name="description" content="Pollenflug heute in Hamburg und die allergierelevanten Straßenbäume in deiner Nähe: Birke, Erle, Hasel und Esche." />
   <meta name="theme-color" content="#ffffff" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Pollenkarte Hamburg" />
+  <meta property="og:description" content="Pollenflug heute und die Birken, Erlen, Haseln und Eschen in deiner Straße." />
+  <meta property="og:locale" content="de_DE" />
+  <link rel="icon" href="/icons/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+  <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="stylesheet" href="/vendor/maplibre-gl-4.7.1/maplibre-gl.css" />
   <link rel="stylesheet" href="/css/app.css" />
   <script src="/vendor/maplibre-gl-4.7.1/maplibre-gl.js" defer></script>
@@ -33,11 +40,14 @@
       <ul class="search-results" id="search-results" role="listbox" aria-label="Suchergebnisse" hidden></ul>
     </div>
 
-    <header class="hero" aria-live="polite">
+    <header class="hero">
       <p class="kicker"><span>Heute in Hamburg</span><span id="date"></span></p>
-      <h1 id="hero-title">Pollenkarte Hamburg</h1>
-      <div id="hero-meter" class="hero-meter"></div>
-      <p id="hero-text" class="hero-text"></p>
+      <div aria-live="polite">
+        <h1 id="hero-title">Pollenkarte Hamburg</h1>
+        <div id="hero-meter" class="hero-meter"></div>
+        <p id="hero-text" class="hero-text"></p>
+      </div>
+      <p class="spot-summary" id="spot-summary" hidden></p>
       <div class="chips" id="chips" role="group" aria-label="Meine Allergien"></div>
     </header>
 
