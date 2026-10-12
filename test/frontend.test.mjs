@@ -51,7 +51,7 @@ test("heroContent names the strongest selected pollen", () => {
 test("heroContent covers quiet, missing and error cases", () => {
   const f = forecastFromToday(pollen, "2027-04-14");
   const calm = forecastFromToday({ days: [{ ...pollen.days[0], levels: { ...pollen.days[0].levels, Birke: lvl(0, "keine") } }] }, "2027-04-14");
-  assert.equal(heroContent(calm, new Set(["birke"]), false).title, "Keine Baumpollen");
+  assert.equal(heroContent(calm, new Set(["birke"]), false).title, "Kein Pollenflug");
   assert.equal(heroContent(f, new Set(), false).title, "Wähle deine Allergien");
   assert.equal(heroContent(forecastFromToday(pollen, "2027-05-01"), new Set(["birke"]), false).title, "Noch keine Vorhersage für heute");
   assert.equal(heroContent(f, new Set(["birke"]), true).title, "Vorhersage nicht erreichbar");
@@ -173,4 +173,32 @@ test("heroContent shows the season pause when nothing chosen is in season", () =
   // Hazel flying early in December beats the calendar
   const december = forecastFromToday({ days: [{ date: "2026-12-20", levels: { Hasel: lvl(2, "gering") } }] }, "2026-12-20");
   assert.equal(heroContent(december, new Set(["hasel"]), false).title, "Hasel: gering");
+});
+
+import { HERBS, POLLEN } from "../public/js/config.js";
+import { chipsHtml, forecastHtml, calendarHtml } from "../public/js/ui.js";
+
+test("grasses and herbs come from the DWD keys and need no tree data", () => {
+  const summer = forecastFromToday({ days: [{ date: "2027-06-10", levels: { Birke: lvl(0, "keine"), Graeser: lvl(4, "mittel"), Roggen: lvl(2, "gering") } }] }, "2027-06-10");
+  const hero = heroContent(summer, new Set(["birke", "graeser", "roggen"]), false);
+  assert.equal(hero.title, "Gräser: mittel");
+  assert.equal(hero.color, HERBS[0].color);
+  assert.match(forecastHtml(summer, new Set(["roggen"])), /Roggen.*gering/s);
+  // Herbs never dim or load trees
+  assert.deepEqual([...flyingToday(summer)], []);
+});
+
+test("season texts for herbs", () => {
+  const byId2 = (...ids) => POLLEN.filter((g) => ids.includes(g.id));
+  assert.equal(seasonText(nextSeason(byId2("graeser"), "2026-10-12")), "Gräser blühen meist ab Mai, in rund 7 Monaten.");
+  assert.equal(seasonText(nextSeason(byId2("beifuss"), "2027-06-20")), "Beifuß blüht meist ab Juli, in 11 Tagen.");
+  assert.equal(nextSeason(byId2("ambrosia"), "2026-10-12"), null); // still possible in October
+});
+
+test("chips, calendar and icons cover all eight pollen types", () => {
+  const html = chipsHtml(new Set(["graeser"]));
+  assert.equal(html.match(/class="chip"/g).length, 8);
+  assert.match(html, /data-id="graeser" aria-pressed="true"/);
+  assert.equal(calendarHtml().match(/class="gen"/g).length, 8);
+  assert.match(shapePath("grass", 16), /^M[\d.\sQZM]+Z$/);
 });

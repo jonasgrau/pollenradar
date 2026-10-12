@@ -16,13 +16,30 @@ export const GENERA = [
   { id: "esche", name: "Esche", shape: "diamond", color: "#4a3aa7" },
 ];
 
-// Typical flowering in northern Germany, January–June: 0 none, 1 possible, 2 main season
-export const MONTHS = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun"];
+// Pollen the DWD forecasts but the tree register does not contain: forecast only, no map layer.
+// They share one colour; the label and the grass icon tell them apart.
+export const HERB_COLOR = "#8a6412";
+export const HERBS = [
+  { id: "graeser", name: "Gräser", dwd: "Graeser", plural: true },
+  { id: "roggen", name: "Roggen", dwd: "Roggen" },
+  { id: "beifuss", name: "Beifuß", dwd: "Beifuss" },
+  { id: "ambrosia", name: "Ambrosia", dwd: "Ambrosia" },
+].map((h) => ({ ...h, shape: "grass", color: HERB_COLOR }));
+
+// Everything that can be chosen, trees first
+export const POLLEN = [...GENERA, ...HERBS];
+
+// Typical flowering in northern Germany per month: 0 none, 1 possible, 2 main season
+export const MONTHS = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"];
 export const SEASON = {
-  hasel: [2, 2, 1, 0, 0, 0],
-  erle: [1, 2, 2, 0, 0, 0],
-  birke: [0, 0, 1, 2, 2, 0],
-  esche: [0, 0, 1, 2, 1, 0],
+  hasel: [2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  erle: [1, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  birke: [0, 0, 1, 2, 2, 0, 0, 0, 0, 0, 0, 0],
+  esche: [0, 0, 1, 2, 1, 0, 0, 0, 0, 0, 0, 0],
+  graeser: [0, 0, 0, 0, 1, 2, 2, 1, 0, 0, 0, 0],
+  roggen: [0, 0, 0, 0, 1, 2, 1, 0, 0, 0, 0, 0],
+  beifuss: [0, 0, 0, 0, 0, 0, 1, 2, 1, 0, 0, 0],
+  ambrosia: [0, 0, 0, 0, 0, 0, 0, 1, 2, 1, 0, 0],
 };
 
 // Density as a classic heatmap, from few (blue) to many trees (red): [density, colour]
