@@ -9,6 +9,12 @@
   --error: #b42318;
   --focus: #1d6fe8;
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 8px 28px rgba(0, 0, 0, 0.12);
+  --shadow-small: 0 1px 2px rgba(0, 0, 0, 0.08), 0 4px 14px rgba(0, 0, 0, 0.12);
+  /* Frosted glass for small controls floating over the map; the panel stays solid
+     because it carries coloured meters and long text */
+  --glass: rgba(255, 255, 255, 0.72);
+  --glass-edge: rgba(255, 255, 255, 0.6);
+  --glass-blur: blur(20px) saturate(180%);
   color-scheme: light;
 }
 
@@ -23,6 +29,11 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 button { font: inherit; color: inherit; }
+button, summary, .option { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+
+/* Press feedback on pointer-down, instant and small */
+.chip, .btn, .locate { position: relative; transition: transform 100ms ease-out; }
+.chip:active, .btn:active, .locate:active { transform: scale(0.97); }
 a { color: inherit; text-underline-offset: 2px; }
 :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
 
@@ -73,6 +84,7 @@ h2 { font-size: 12px; font-weight: 600; color: var(--text-3); text-transform: up
   cursor: pointer;
 }
 .chip[aria-pressed="true"] { background: var(--text); border-color: var(--text); color: #fff; }
+.chip[aria-pressed="true"] .shape path { fill: #fff; }
 .shape { flex: none; }
 
 .days { display: grid; grid-template-columns: 92px repeat(3, 1fr); gap: 6px 10px; align-items: center; font-size: 13px; }
@@ -92,11 +104,11 @@ h2 { font-size: 12px; font-weight: 600; color: var(--text-3); text-transform: up
 .stat b { display: block; font-size: 26px; font-weight: 750; letter-spacing: -0.02em; line-height: 1.1; }
 .stat span { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-2); }
 
-details summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; }
-details summary::-webkit-details-marker { display: none; }
-details summary h2 { margin: 0; }
-details summary::after { content: "▾"; color: var(--text-3); }
-details[open] summary::after { content: "▴"; }
+.panel details summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; margin: -14px 0; padding: 14px 0; }
+.panel details summary::-webkit-details-marker { display: none; }
+.panel details summary h2 { margin: 0; }
+.panel details summary::after { content: "▾"; color: var(--text-3); }
+.panel details[open] summary::after { content: "▴"; }
 
 .calendar { display: grid; grid-template-columns: 92px repeat(12, 1fr); gap: 4px 2px; align-items: center; margin-top: 12px; font-size: 13px; }
 .calendar .m { text-align: center; font-size: 11px; color: var(--text-3); }
@@ -152,11 +164,11 @@ details[open] summary::after { content: "▴"; }
   padding: 10px 14px;
   border: 0;
   border-radius: 999px;
-  background: var(--text);
-  color: #fff;
+  background: var(--surface);
+  color: var(--text);
   font-size: 14px;
-  font-weight: 600;
-  box-shadow: var(--shadow);
+  font-weight: 650;
+  box-shadow: var(--shadow-small);
   cursor: pointer;
 }
 
@@ -169,8 +181,9 @@ details[open] summary::after { content: "▴"; }
   padding: 10px 12px;
   background: var(--surface);
   border-radius: 12px;
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-small);
   font-size: 12px;
+  font-weight: 500;
   color: var(--text-2);
   transition: opacity 0.2s;
 }
@@ -178,6 +191,34 @@ details[open] summary::after { content: "▴"; }
 .density.is-hidden, .density.no-trees { opacity: 0; }
 .ramp { height: 8px; border-radius: 3px; background: linear-gradient(90deg, #4169e1, #00bcd4, #4caf50, #ffeb3b, #ff9800, #e53935); }
 .ramp-labels { display: flex; justify-content: space-between; margin-top: 4px; }
+
+/* Loading hint over the map, centred in the area next to the panel */
+.map-status {
+  position: fixed;
+  z-index: 2;
+  top: 16px;
+  left: calc(412px + (100% - 412px) / 2);
+  transform: translateX(-50%);
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: var(--shadow-small);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.map-status[hidden] { display: none; }
+
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .locate, .density, .map-status {
+    background: var(--glass);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+    box-shadow: inset 0 1px 0 var(--glass-edge), var(--shadow-small);
+  }
+  /* Over glass, secondary grey is too weak: use full ink */
+  .density { color: var(--text); }
+}
 
 .maplibregl-popup-content { font: 13px/1.4 system-ui, sans-serif; border-radius: 10px; padding: 10px 12px; }
 .maplibregl-popup-content span { color: var(--text-2); }
@@ -195,9 +236,24 @@ details[open] summary::after { content: "▴"; }
     transition: max-height 0.25s ease;
   }
   .panel.is-open { max-height: 85vh; }
-  .grip { display: block; width: 100%; padding: 10px 0 2px; background: none; border: 0; cursor: pointer; }
-  .grip::before { content: ""; display: block; width: 40px; height: 4px; border-radius: 2px; background: var(--rule); margin: 0 auto; }
+  /* 44 px tall hit area; it overlaps the (non-interactive) kicker line below */
+  .grip { display: block; position: relative; z-index: 1; width: 100%; height: 44px; margin-bottom: -26px; padding: 10px 0 0; background: none; border: 0; cursor: pointer; }
+  .grip::before { content: ""; display: block; width: 40px; height: 5px; border-radius: 3px; background: #d4d5d9; margin: 0 auto; }
   .hero { padding-top: 6px; }
+
+  /* Chips as one swipeable row; the group labels become a thin divider but stay readable for screen readers */
+  .chips { flex-wrap: nowrap; overflow-x: auto; margin: 12px -20px 0; padding: 4px 20px; scrollbar-width: none; overscroll-behavior-x: contain; }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip { flex: none; }
+  .chips-label { flex: none; align-self: stretch; width: 1px; margin: 6px 4px; overflow: hidden; color: transparent; background: var(--rule); white-space: nowrap; }
+  .chips-label:first-child { width: 0; margin: 0; }
+  .chips-label + .chip, .chip + .chips-label { margin-top: 0; }
+  .chips.fade-end { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 32px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 32px), transparent); }
+  .chips.fade-start { -webkit-mask-image: linear-gradient(90deg, transparent, #000 32px); mask-image: linear-gradient(90deg, transparent, #000 32px); }
+  .chips.fade-start.fade-end {
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 32px, #000 calc(100% - 32px), transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 32px, #000 calc(100% - 32px), transparent);
+  }
   .spot-summary:not([hidden]) {
     display: flex;
     flex-wrap: wrap;
@@ -212,14 +268,48 @@ details[open] summary::after { content: "▴"; }
   .spot-summary b { font-weight: 700; }
   .spot-summary span { display: inline-flex; align-items: center; gap: 4px; }
   .search { position: fixed; z-index: 3; top: 12px; left: 12px; right: 12px; padding: 0; }
-  .search-input { background: var(--surface); box-shadow: var(--shadow); border-color: transparent; padding-right: 14px; }
+  .search-input { min-height: 44px; background: var(--surface); box-shadow: var(--shadow-small); border-color: transparent; padding-right: 14px; }
   .search-results { left: 0; right: 0; }
   h1 { font-size: 22px; }
   .locate { top: 64px; right: 12px; padding: 8px 12px; font-size: 13px; }
   .density { top: 64px; left: 12px; right: auto; bottom: auto; width: 170px; padding: 8px 10px; }
   .density strong { font-size: 12px; }
+  .map-status { top: auto; bottom: calc(36vh + 12px); left: 50%; }
+  .panel.is-open ~ .map-status { display: none; }
+
+  @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    /* Solid again while typing, so the results list below never sits on glass */
+    .search-input:not(:focus) {
+      background: var(--glass);
+      -webkit-backdrop-filter: var(--glass-blur);
+      backdrop-filter: var(--glass-blur);
+      box-shadow: inset 0 1px 0 var(--glass-edge), var(--shadow-small);
+    }
+    .search-input:not(:focus)::placeholder { color: var(--text-2); }
+  }
+}
+
+/* Touch screens: every control gets a 44 px hit area, without growing visually */
+@media (pointer: coarse) {
+  .chip::after, .btn::after, .locate::after { content: ""; position: absolute; inset: -4px -3px; }
+  .locate::after { inset: -5px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .panel, .density { transition: none; }
+  /* Gentler press feedback without movement */
+  .chip, .btn, .locate { transition: opacity 100ms ease-out; }
+  .chip:active, .btn:active, .locate:active { transform: none; opacity: 0.7; }
+}
+
+/* Glass becomes solid when people ask for less transparency or more contrast */
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .locate, .density, .map-status { background: var(--surface) !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+}
+@media (prefers-reduced-transparency: reduce) and (max-width: 640px), (prefers-contrast: more) and (max-width: 640px) {
+  .search-input:not(:focus) { background: var(--surface) !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+}
+@media (prefers-contrast: more) {
+  :root { --text-2: #3a3d42; --text-3: #4a4d53; --rule: #8a8d93; }
+  .locate, .density, .map-status, .panel { border: 1px solid var(--text-2); }
 }

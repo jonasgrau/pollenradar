@@ -5,6 +5,7 @@ import { esc } from "./ui.js";
 
 const DEBOUNCE_MS = 200;
 const MIN_LENGTH = 3;
+const SLOW_MS = 300; // only then say that the search is still running
 
 export function setupSearch({ input, list, onSelect }) {
   let results = [];
@@ -44,6 +45,7 @@ export function setupSearch({ input, list, onSelect }) {
   async function search(query) {
     controller?.abort();
     controller = new AbortController();
+    const slow = setTimeout(() => show([], "Suche …"), SLOW_MS);
     try {
       const res = await fetch(ADDRESS_SEARCH_URL, {
         method: "POST",
@@ -57,6 +59,8 @@ export function setupSearch({ input, list, onSelect }) {
       show(items, items.length ? null : "Keine Straße oder Adresse in Hamburg gefunden");
     } catch (err) {
       if (err.name !== "AbortError") show([], "Suche gerade nicht möglich");
+    } finally {
+      clearTimeout(slow);
     }
   }
 
