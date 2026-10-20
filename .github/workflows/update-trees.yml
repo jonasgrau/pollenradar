@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: update-trees
@@ -20,7 +20,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
+      # Pushes go through the repository's deploy key: the ruleset on main requires the
+      # test check, and deploy keys are the only actor allowed to bypass it
       - uses: actions/checkout@v4
+        with:
+          ssh-key: ${{ secrets.TREES_DEPLOY_KEY }}
       - uses: actions/setup-node@v4
         with:
           node-version: 20

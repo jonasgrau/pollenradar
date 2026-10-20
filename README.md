@@ -71,6 +71,7 @@ When none of the chosen pollen types is in season and nothing is flying, the pan
 
 - **Tests** (`test.yml`): `npm test` on every pull request and push to `main`.
 - **Tree data** (`update-trees.yml`): monthly refresh, commits only when the data changed.
+- **Branch rule**: a repository ruleset requires the `test` check before anything lands on `main`, so changes go through pull requests (auto-merge waits for the check). Only deploy keys may bypass it: `update-trees.yml` pushes with the write deploy key stored in the secret `TREES_DEPLOY_KEY`.
 - **Live check** (`healthcheck.yml`): daily at 10:15 UTC (after the DWD update), `scripts/healthcheck.js` loads the live page, `/api/pollen`, the tree data and the external services the browser uses (basemap.de, the Hamburg address search). A failed run triggers GitHub's e-mail. The address comes from the repository variable `HEALTHCHECK_URL`; until it is set the job is skipped. Locally: `node scripts/healthcheck.js http://localhost:3000`.
 
 ## Deployment
