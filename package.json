@@ -12,6 +12,7 @@
     "data:trees": "node scripts/fetch-trees.js",
     "dev": "node scripts/serve.js public 3000",
     "dev:demo": "POLLEN_DEMO=1 node scripts/serve.js public 3000",
-    "drafts": "node scripts/serve.js entwuerfe 8080"
+    "drafts": "node scripts/serve.js entwuerfe 8080",
+    "drafts:design": "node scripts/serve.js . 8090"
   }
 }

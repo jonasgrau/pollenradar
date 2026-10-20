@@ -2,7 +2,7 @@ import { DEFAULT_SELECTION, DENSITY_UNTIL, EXAMPLE_SPOT, GENERA, POLLEN, RADIUS_
 import { countAround, fetchJson, flyingToday, forecastFromToday, loadGenus, toGeoJSON } from "./data.js";
 import { createMap } from "./map.js";
 import { setupSearch } from "./search.js";
-import { aroundHtml, calendarHtml, chipsHtml, forecastHtml, heroContent, meter, spotSummaryHtml } from "./ui.js";
+import { alsoText, aroundHtml, chipsHtml, clockSvg, forecastHtml, heroContent, spotSummaryHtml, updatedText } from "./ui.js";
 
 const STORAGE_KEY = "pollenkarte.auswahl";
 const $ = (id) => document.getElementById(id);
@@ -28,31 +28,47 @@ const state = {
 // Keeps the chosen spot visible next to the panel (desktop) or above the sheet (phone)
 function mapPadding() {
   return window.innerWidth > 640
-    ? { left: 400, top: 40, right: 40, bottom: 40 }
+    ? { left: 420, top: 40, right: 40, bottom: 40 }
     : { bottom: Math.round(window.innerHeight * 0.4), top: 40, left: 20, right: 20 };
 }
 
 const map = createMap("map", {
-  onPick: (lon, lat) => setSpot(lon, lat, "Gewählter Punkt", false),
+  onPick: (lon, lat) => setSpot(lon, lat, "Gewählter Punkt", "den gewählten Punkt", false),
   onZoom: (zoom) => $("density").classList.toggle("is-hidden", zoom >= DENSITY_UNTIL),
 });
 
 // Rendering
 
+let handSwept = false;
+
 function renderHero() {
   const hero = heroContent(state.forecast, state.selected, state.pollenError, state.pollenLoading);
-  $("hero-title").textContent = hero.title;
-  $("hero-meter").innerHTML = meter(hero.step, hero.color);
+  $("hero-title").textContent = hero.name || hero.title;
+  $("hero-level").textContent = hero.level || "";
+  $("hero-level").hidden = !hero.level;
   $("hero-text").textContent = hero.text;
+  const also = hero.level ? alsoText(state.forecast, state.selected) : "";
+  $("hero-also").textContent = also;
+  $("hero-also").hidden = !also;
+
+  $("dial").querySelector(".clock")?.remove();
+  $("dial").insertAdjacentHTML("afterbegin", clockSvg(state.selected, state.pollenLoading ? null : state.forecast[0].date));
+  // The hand sweeps from January to today once, when the forecast first arrives
+  const hand = $("dial").querySelector(".hand");
+  if (hand && !handSwept && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    hand.classList.add("from-jan");
+    requestAnimationFrame(() => requestAnimationFrame(() => hand.classList.remove("from-jan")));
+  }
+  if (hand) handSwept = true;
 }
 
 function renderForecast() {
   $("forecast").innerHTML = state.pollenError
-    ? `<p class="hint">Die DWD-Vorhersage ist gerade nicht erreichbar.</p>`
+    ? `<p class="hint">Die Vorhersage des DWD ist gerade nicht erreichbar. Lade die Seite in ein paar Minuten neu.</p>`
     : forecastHtml(state.forecast, state.selected);
   const p = state.pollen;
   $("forecast-meta").textContent = p
-    ? `${p.region} · Stand: ${p.updated}${p.stale ? " (DWD gerade nicht erreichbar)" : ""}`
+    ? `Vorhersage des DWD für ${p.region}, Stand: ${updatedText(p.updated, state.forecast[0].date)}.${p.stale ? " Der DWD ist gerade nicht erreichbar, das ist der letzte bekannte Stand." : ""}`
     : "";
 }
 
@@ -122,8 +138,9 @@ async function loadPollen() {
   renderForecast();
 }
 
-function setSpot(lon, lat, name, fly) {
-  state.spot = { lon, lat, name };
+// name labels the spot on its own, phrase fits into "Im Umkreis von 250 m um …"
+function setSpot(lon, lat, name, phrase, fly) {
+  state.spot = { lon, lat, name, phrase };
   map.showSpot(lon, lat);
   if (fly) map.flyTo(lon, lat, mapPadding());
   renderAround();
@@ -147,7 +164,7 @@ function locate() {
   if (!navigator.geolocation) return;
   $("locate-error").hidden = true;
   navigator.geolocation.getCurrentPosition(
-    (p) => setSpot(p.coords.longitude, p.coords.latitude, "Dein Standort", true),
+    (p) => setSpot(p.coords.longitude, p.coords.latitude, "Dein Standort", "deinen Standort", true),
     () => ($("locate-error").hidden = false),
     { enableHighAccuracy: true, timeout: 10_000 },
   );
@@ -157,17 +174,15 @@ $("locate-panel").addEventListener("click", locate);
 setupSearch({
   input: $("search-input"),
   list: $("search-results"),
-  onSelect: (place) => setSpot(place.lon, place.lat, place.name, true),
+  onSelect: (place) => setSpot(place.lon, place.lat, place.name, place.name, true),
 });
-$("example").addEventListener("click", () => setSpot(EXAMPLE_SPOT.lon, EXAMPLE_SPOT.lat, EXAMPLE_SPOT.name, true));
+$("example").addEventListener("click", () => setSpot(EXAMPLE_SPOT.lon, EXAMPLE_SPOT.lat, EXAMPLE_SPOT.name, EXAMPLE_SPOT.phrase, true));
 
 $("grip").addEventListener("click", () => {
   const open = $("panel").classList.toggle("is-open");
   $("grip").setAttribute("aria-expanded", open);
 });
 
-$("date").textContent = new Date().toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "long", timeZone: "Europe/Berlin" });
-$("calendar").innerHTML = calendarHtml();
 $("chips").innerHTML = chipsHtml(state.selected);
 $("chips").addEventListener("scroll", updateChipFades, { passive: true });
 window.addEventListener("resize", updateChipFades);

@@ -176,7 +176,7 @@ test("heroContent shows the season pause when nothing chosen is in season", () =
 });
 
 import { HERBS, POLLEN } from "../public/js/config.js";
-import { chipsHtml, forecastHtml, calendarHtml } from "../public/js/ui.js";
+import { chipsHtml, forecastHtml, clockSvg, dayAngle, updatedText, aroundHtml, alsoText } from "../public/js/ui.js";
 
 test("grasses and herbs come from the DWD keys and need no tree data", () => {
   const summer = forecastFromToday({ days: [{ date: "2027-06-10", levels: { Birke: lvl(0, "keine"), Graeser: lvl(4, "mittel"), Roggen: lvl(2, "gering") } }] }, "2027-06-10");
@@ -199,7 +199,6 @@ test("chips, calendar and icons cover all eight pollen types", () => {
   const html = chipsHtml(new Set(["graeser"]));
   assert.equal(html.match(/class="chip"/g).length, 8);
   assert.match(html, /data-id="graeser" aria-pressed="true"/);
-  assert.equal(calendarHtml().match(/class="gen"/g).length, 8);
   assert.match(shapePath("grass", 16), /^M[\d.\sQZM]+Z$/);
 });
 
@@ -208,4 +207,43 @@ test("heroContent says the forecast is loading before anything else", () => {
   assert.equal(hero.text, "Vorhersage wird geladen …");
   // Chips carry their colour icon in both states; CSS turns it white when pressed
   assert.match(chipsHtml(new Set(["birke"])), /data-id="birke" aria-pressed="true"><svg[^>]+><path fill="#2a78d6"/);
+});
+
+test("heroContent splits name and level while pollen is flying", () => {
+  const hero = heroContent(forecastFromToday(pollen, "2027-04-14"), new Set(["birke", "esche"]), false);
+  assert.equal(hero.name, "Birke");
+  assert.equal(hero.level, "mittel bis hoch");
+  assert.equal(alsoText(forecastFromToday(pollen, "2027-04-14"), new Set(["birke", "esche"])), "Dazu Esche gering.");
+  assert.match(heroContent(forecastFromToday(pollen, "2027-04-14"), new Set(["birke"]), true).text, /Lade die Seite in ein paar Minuten neu/);
+});
+
+test("dayAngle puts dates on the year ring", () => {
+  assert.equal(dayAngle("2027-01-01"), 0);
+  assert.ok(Math.abs(dayAngle("2027-07-02") - 180) < 1);
+  assert.ok(dayAngle("2028-12-31") < 360);
+});
+
+test("clockSvg draws one ring of twelve months per chosen pollen and a hand on today", () => {
+  const svg = clockSvg(new Set(["birke", "esche"]), "2027-04-14");
+  assert.equal(svg.match(/stroke-width="11"/g).length, 24);
+  assert.match(svg, /stroke="#2a78d6" stroke-opacity="1"/); // birch main season
+  assert.match(svg, /class="hand" style="--angle:101\.\d+deg"/);
+  assert.match(svg, /<text class="face-day" y="6">14<\/text>/);
+  assert.match(svg, /aria-label="Blühzeiten im Jahreslauf: Birke von März bis Mai, Esche von März bis Mai\./);
+  // Without a date (still loading) there is no hand
+  assert.doesNotMatch(clockSvg(new Set(["birke"]), null), /class="hand"/);
+});
+
+test("updatedText turns the DWD timestamp into words", () => {
+  assert.equal(updatedText("2026-10-20 11:00 Uhr", "2026-10-20"), "heute, 11 Uhr");
+  assert.equal(updatedText("2026-10-19 11:00 Uhr", "2026-10-20"), "gestern, 11 Uhr");
+  assert.equal(updatedText("2026-10-17 11:30 Uhr", "2026-10-20"), "Samstag, 17. Oktober, 11.30 Uhr");
+  assert.equal(updatedText("Beispielwerte", "2026-10-20"), "Beispielwerte");
+});
+
+test("aroundHtml writes the tree count as a sentence with plurals", () => {
+  const html = aroundHtml({ name: "Dein Standort", phrase: "deinen Standort" }, { counts: { birke: 102, esche: 1 }, nearest: { art: "Sand-Birke", dist: 4.2 } }, new Set(["birke", "esche"]), 250);
+  assert.match(html, /Im Umkreis von 250 m um deinen Standort stehen/);
+  assert.match(html, /<b>102<\/b> Birken<\/span> und <span class="tally">.*<b>1<\/b> Esche/);
+  assert.match(html, /Der nächste ist eine Sand-Birke, 4 m entfernt\./);
 });

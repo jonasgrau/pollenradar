@@ -1,7 +1,7 @@
 // Fixed settings of the app
 
 export const HAMBURG = { center: [9.99, 53.56], zoom: 11 };
-export const EXAMPLE_SPOT = { name: "Niendorf, Birkengrund", lon: 9.9525, lat: 53.64 };
+export const EXAMPLE_SPOT = { name: "Niendorf, Birkengrund", phrase: "den Birkengrund in Niendorf", lon: 9.9525, lat: 53.64 };
 export const RADIUS_M = 250;
 export const DENSITY_UNTIL = 13.5; // zoomed out: density; zoomed in: single trees
 export const BASEMAP = "https://sgx.geodatenzentrum.de/gdz_basemapde_vektor/styles/bm_web_col.json";
