@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Pollenkarte Hamburg</title>
   <meta name="description" content="Pollenflug heute in Hamburg für Bäume, Gräser und Kräuter, dazu die allergierelevanten Straßenbäume in deiner Nähe: Birke, Erle, Hasel und Esche." />
-  <meta name="theme-color" content="#ffffff" />
+  <meta name="theme-color" content="#edf0ea" />
   <meta property="og:type" content="website" />
   <meta property="og:title" content="Pollenkarte Hamburg" />
   <meta property="og:description" content="Pollenflug heute und die Birken, Erlen, Haseln und Eschen in deiner Straße." />
@@ -21,6 +21,7 @@
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="stylesheet" href="/vendor/maplibre-gl-4.7.1/maplibre-gl.css" />
+  <link rel="preload" href="/fonts/literata.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="/css/app.css" />
   <script src="/vendor/maplibre-gl-4.7.1/maplibre-gl.js" defer></script>
   <script type="module" src="/js/app.js"></script>
@@ -37,7 +38,7 @@
 <body>
   <div id="map" role="region" aria-label="Karte der Straßenbäume"></div>
 
-  <button class="locate" id="locate" type="button">◎ Mein Standort</button>
+  <button class="locate" id="locate" type="button"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M14.6 1.4 1.6 7.1l5.6 1.7 1.7 5.6z"/></svg>Mein Standort</button>
 
   <div class="density" id="density" aria-hidden="true">
     <strong>Dichte der gewählten Bäume</strong>
@@ -50,46 +51,44 @@
 
     <div class="search" role="search">
       <label class="sr-only" for="search-input">Straße oder Adresse in Hamburg suchen</label>
-      <input id="search-input" class="search-input" type="search" placeholder="Straße oder Adresse suchen …"
+      <input id="search-input" class="search-input" type="search" placeholder="Straße oder Adresse suchen"
         role="combobox" aria-expanded="false" aria-controls="search-results" aria-autocomplete="list"
         autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" />
       <ul class="search-results" id="search-results" role="listbox" aria-label="Suchergebnisse" hidden></ul>
     </div>
 
     <header class="hero">
-      <p class="kicker"><span>Heute in Hamburg</span><span id="date"></span></p>
-      <div aria-live="polite">
-        <h1 id="hero-title">Pollenkarte Hamburg</h1>
-        <div id="hero-meter" class="hero-meter"></div>
-        <p id="hero-text" class="hero-text"></p>
+      <div class="hero-main">
+        <div class="dial" id="dial">
+          <span class="q q-jan" aria-hidden="true">Jan</span><span class="q q-apr" aria-hidden="true">Apr</span>
+          <span class="q q-jul" aria-hidden="true">Jul</span><span class="q q-okt" aria-hidden="true">Okt</span>
+        </div>
+        <div class="hero-copy" aria-live="polite">
+          <h1 id="hero-title">Pollenkarte Hamburg</h1>
+          <p class="level" id="hero-level" hidden></p>
+          <p class="hero-text" id="hero-text"></p>
+          <p class="also" id="hero-also" hidden></p>
+        </div>
       </div>
       <p class="spot-summary" id="spot-summary" hidden></p>
-      <div class="chips" id="chips" role="group" aria-label="Meine Allergien"></div>
+      <div class="chips" id="chips" role="group" aria-label="Worauf reagierst du?"></div>
     </header>
 
     <section aria-labelledby="h-forecast">
-      <h2 id="h-forecast">Vorhersage DWD</h2>
+      <h2 id="h-forecast">Die nächsten drei Tage</h2>
       <div id="forecast"></div>
       <p class="meta" id="forecast-meta"></p>
     </section>
 
     <section aria-labelledby="h-around">
-      <h2 id="h-around">Im Umkreis von 250 m</h2>
+      <h2 id="h-around">Bäume in deiner Nähe</h2>
       <div class="btns">
-        <button class="btn primary" id="locate-panel" type="button">◎ Mein Standort</button>
+        <button class="btn primary" id="locate-panel" type="button"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M14.6 1.4 1.6 7.1l5.6 1.7 1.7 5.6z"/></svg>Mein Standort</button>
         <button class="btn" id="example" type="button">Beispiel: Birkengrund</button>
       </div>
       <p class="error" id="locate-error" hidden>Standort nicht verfügbar. Tippe stattdessen auf die Karte.</p>
       <p class="error" id="trees-error" hidden>Die Baumdaten konnten nicht geladen werden.</p>
-      <div id="around" aria-live="polite"><p class="hint">Oder tippe auf die Karte.</p></div>
-    </section>
-
-    <section>
-      <details>
-        <summary><h2>Wann blüht was?</h2></summary>
-        <div class="calendar" id="calendar"></div>
-        <p class="meta">Typische Blütezeiten in Norddeutschland, je nach Wetter einige Wochen früher oder später.</p>
-      </details>
+      <div id="around" aria-live="polite"><p class="hint">Suche eine Adresse oder tippe auf die Karte.</p></div>
     </section>
 
     <section>
@@ -105,6 +104,7 @@
             <li>Bäume: Straßenbaumkataster, Freie und Hansestadt Hamburg, <a href="https://www.govdata.de/dl-de/by-2-0" rel="noopener">Datenlizenz Deutschland – Namensnennung 2.0</a> <span id="trees-updated"></span></li>
             <li>Karte: <a href="https://basemap.de" rel="noopener">basemap.de</a> / BKG</li>
             <li>Adresssuche: Adressdienst der Freien und Hansestadt Hamburg</li>
+            <li>Schrift: Literata, <a href="https://openfontlicense.org" rel="noopener">SIL Open Font License</a></li>
           </ul>
           <p><strong>Datenschutz</strong></p>
           <p>Die Seite setzt keine Cookies und speichert deine Auswahl nur in deinem Browser. Der Hoster (Vercel) verarbeitet technisch notwendige Verbindungsdaten wie die IP-Adresse. Für eine anonyme Besucherzählung nutzt die Seite Vercel Web Analytics: ohne Cookies und ohne Profile, Besuche werden nur über einen täglich wechselnden Wert unterschieden. Beim Laden der Hintergrundkarte geht deine IP-Adresse an basemap.de (BKG), bei der Suche der eingegebene Text an den Adressdienst der Stadt Hamburg. Dein Standort wird nur nach deiner Freigabe genutzt, um den Umkreis zu berechnen, und nirgendwohin gesendet.</p>

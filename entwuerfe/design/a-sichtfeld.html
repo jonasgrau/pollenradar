@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Entwurf A: Sichtfeld</title>
+  <link rel="stylesheet" href="/public/vendor/maplibre-gl-4.7.1/maplibre-gl.css" />
+  <link rel="stylesheet" href="base.css" />
+  <style>
+@font-face { font-family: "Atkinson Hyperlegible Next"; src: url("fonts/atkinson-hyperlegible-next.woff2") format("woff2"); font-weight: 200 800; font-display: swap; }
+/* Objektträger, Tusche, Okular, Deckglas, Fuchsin */
+:root {
+  --panel: #eef2f3; --ink: #16222b; --ink-2: #4f5f69; --ink-3: #5f6d76; --rule: #d6dee2; --empty: #dce3e6;
+  --chip-on: #16222b; --stain: #b8326e; --stain-fill: rgba(184, 50, 110, 0.14);
+  --font: "Atkinson Hyperlegible Next", system-ui, sans-serif;
+}
+.hero { display: grid; grid-template-columns: 132px 1fr; gap: 18px; align-items: center; }
+.sight { width: 132px; aspect-ratio: 1; border-radius: 50%; box-shadow: 0 0 0 6px #e2e8eb, 0 0 0 7px #cdd6db, 0 10px 24px rgba(22, 34, 43, 0.18); }
+.field { display: block; width: 100%; height: 100%; }
+.field .lens { stroke: #c9d3d8; stroke-width: 1; }
+.field .wall { fill: var(--stain-fill); stroke: var(--stain); stroke-width: 1.1; }
+.field .pore, .field .net { fill: var(--stain); }
+.field .net { opacity: 0.35; }
+.field .furrow, .field .ring { fill: none; stroke: var(--stain); stroke-width: 1.1; stroke-linecap: round; }
+.focus-in .grains { animation: focus 1100ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+@keyframes focus { from { filter: blur(4px); opacity: 0.35; transform: scale(1.06); } to { filter: none; opacity: 1; transform: none; } }
+h1 { font-size: 36px; line-height: 1.02; font-weight: 750; letter-spacing: -0.022em; }
+.level { margin-top: 4px; font-size: 21px; line-height: 1.2; font-weight: 450; color: var(--stain); }
+.hero-text { margin-top: 10px; font-size: 16px; line-height: 1.45; color: var(--ink-2); }
+.also { margin-top: 6px; font-size: 14px; color: var(--ink-3); }
+@media (max-width: 640px) {
+  .hero { grid-template-columns: 104px 1fr; gap: 14px; }
+  .sight { width: 104px; box-shadow: 0 0 0 5px #e2e8eb, 0 0 0 6px #cdd6db, 0 8px 18px rgba(22, 34, 43, 0.18); }
+  h1 { font-size: 30px; }
+  .level { font-size: 18px; }
+  .hero-text { font-size: 15px; margin-top: 6px; }
+}
+@media (prefers-reduced-motion: reduce) { .focus-in .grains { animation: none; } }
+  </style>
+</head>
+<body>
+  <div id="map" role="region" aria-label="Karte der Straßenbäume"></div>
+  <button class="locate" id="locate" type="button"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M14.6 1.4 1.6 7.1l5.6 1.7 1.7 5.6z"/></svg>Mein Standort</button>
+  <div class="density" id="density" aria-hidden="true">
+    <strong>Dichte der gewählten Bäume</strong>
+    <div class="ramp"></div>
+    <div class="ramp-labels"><span>wenige</span><span>viele</span></div>
+  </div>
+
+  <aside class="panel" id="panel" aria-label="Pollenflug und Bäume">
+    <button class="grip" id="grip" type="button" aria-label="Bedienfeld aufziehen" aria-expanded="false" aria-controls="panel"></button>
+    <div class="draftbar"><strong>Entwurf A: Sichtfeld</strong><span id="scenarios"></span><a href="index.html">Alle Entwürfe</a></div>
+    <div class="search" role="search">
+      <label class="sr-only" for="search-input">Straße oder Adresse in Hamburg suchen</label>
+      <input id="search-input" class="search-input" type="search" placeholder="Straße oder Adresse suchen"
+        role="combobox" aria-expanded="false" aria-controls="search-results" aria-autocomplete="list"
+        autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" />
+      <ul class="search-results" id="search-results" role="listbox" aria-label="Suchergebnisse" hidden></ul>
+    </div>
+    <header class="hero" id="hero" aria-live="polite"></header>
+    <div class="chips" id="chips" role="group" aria-label="Worauf reagierst du?"></div>
+
+    <section aria-labelledby="h-forecast">
+      <h2 id="h-forecast">Die nächsten drei Tage</h2>
+      <div id="forecast"></div>
+      <p class="meta" id="forecast-meta"></p>
+    </section>
+
+    <section aria-labelledby="h-around">
+      <h2 id="h-around">Bäume in deiner Nähe</h2>
+      <div class="btns">
+        <button class="btn primary" id="locate-panel" type="button"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M14.6 1.4 1.6 7.1l5.6 1.7 1.7 5.6z"/></svg>Mein Standort</button>
+        <button class="btn" id="example" type="button">Beispiel: Birkengrund</button>
+      </div>
+      <div id="around" aria-live="polite"><p class="hint">Suche eine Adresse oder tippe auf die Karte.</p></div>
+    </section>
+
+    <section>
+      <details>
+        <summary><h2>Wann blüht was?</h2></summary>
+        <div class="calendar" id="calendar"></div>
+        <p class="meta">Typische Blütezeiten in Norddeutschland. Je nach Wetter beginnt die Blüte einige Wochen früher oder später.</p>
+      </details>
+    </section>
+  </aside>
+  <script src="/public/vendor/maplibre-gl-4.7.1/maplibre-gl.js"></script>
+  <script type="module" src="a-sichtfeld.js"></script>
+</body>
+</html>
