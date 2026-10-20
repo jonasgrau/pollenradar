@@ -19,6 +19,7 @@ const state = {
   selected: readSelection(),
   pollen: null,
   pollenError: false,
+  pollenLoading: true,
   forecast: forecastFromToday(null),
   datasets: [],
   spot: null,
@@ -39,7 +40,7 @@ const map = createMap("map", {
 // Rendering
 
 function renderHero() {
-  const hero = heroContent(state.forecast, state.selected, state.pollenError);
+  const hero = heroContent(state.forecast, state.selected, state.pollenError, state.pollenLoading);
   $("hero-title").textContent = hero.title;
   $("hero-meter").innerHTML = meter(hero.step, hero.color);
   $("hero-text").textContent = hero.text;
@@ -64,8 +65,18 @@ function renderAround() {
   $("spot-summary").hidden = !summary;
 }
 
+// Phones show the chips as one swipeable row; fade the edges that have more chips behind them
+function updateChipFades() {
+  const row = $("chips");
+  const scrollable = row.scrollWidth > row.clientWidth + 1;
+  row.classList.toggle("fade-start", scrollable && row.scrollLeft > 1);
+  row.classList.toggle("fade-end", scrollable && row.scrollLeft + row.clientWidth < row.scrollWidth - 1);
+}
+
 function renderAll() {
-  $("chips").innerHTML = chipsHtml(state.selected);
+  for (const chip of $("chips").querySelectorAll(".chip")) {
+    chip.setAttribute("aria-pressed", String(state.selected.has(chip.dataset.id)));
+  }
   renderHero();
   renderForecast();
   renderAround();
@@ -73,14 +84,26 @@ function renderAll() {
 
 // Data
 
+// Shown only when loading takes noticeably long, so cached data never flickers a message
+const STATUS_DELAY_MS = 150;
+let treeRequest = 0;
+
 async function refreshTrees() {
+  const request = ++treeRequest;
+  const trees = GENERA.filter((g) => state.selected.has(g.id));
+  $("density").classList.toggle("no-trees", !trees.length);
+  const status = setTimeout(() => ($("map-status").hidden = false), STATUS_DELAY_MS);
   try {
-    const trees = GENERA.filter((g) => state.selected.has(g.id));
-    $("density").classList.toggle("no-trees", !trees.length);
-    state.datasets = await Promise.all(trees.map((g) => loadGenus(g.id)));
+    const datasets = await Promise.all(trees.map((g) => loadGenus(g.id)));
+    if (request !== treeRequest) return; // a newer selection is already loading
+    state.datasets = datasets;
     $("trees-error").hidden = true;
   } catch {
+    if (request !== treeRequest) return;
     $("trees-error").hidden = false;
+  } finally {
+    clearTimeout(status);
+    if (request === treeRequest) $("map-status").hidden = true;
   }
   map.setTrees(toGeoJSON(state.datasets, flyingToday(state.forecast)));
   renderAround();
@@ -94,6 +117,7 @@ async function loadPollen() {
   } catch {
     state.pollenError = true;
   }
+  state.pollenLoading = false;
   renderHero();
   renderForecast();
 }
@@ -144,6 +168,12 @@ $("grip").addEventListener("click", () => {
 
 $("date").textContent = new Date().toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "long", timeZone: "Europe/Berlin" });
 $("calendar").innerHTML = calendarHtml();
+$("chips").innerHTML = chipsHtml(state.selected);
+$("chips").addEventListener("scroll", updateChipFades, { passive: true });
+window.addEventListener("resize", updateChipFades);
+updateChipFades();
+// iOS Safari only applies :active (the press feedback) when a touch listener exists
+document.addEventListener("touchstart", () => {}, { passive: true });
 fetchJson("/data/trees/meta.json")
   .then((meta) => ($("trees-updated").textContent = `(Stand der Daten: ${new Date(meta.updated).toLocaleDateString("de-DE")})`))
   .catch(() => {});

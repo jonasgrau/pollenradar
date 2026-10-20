@@ -202,3 +202,10 @@ test("chips, calendar and icons cover all eight pollen types", () => {
   assert.equal(calendarHtml().match(/class="gen"/g).length, 8);
   assert.match(shapePath("grass", 16), /^M[\d.\sQZM]+Z$/);
 });
+
+test("heroContent says the forecast is loading before anything else", () => {
+  const hero = heroContent(forecastFromToday(null, "2027-04-14"), new Set(["birke"]), false, true);
+  assert.equal(hero.text, "Vorhersage wird geladen …");
+  // Chips carry their colour icon in both states; CSS turns it white when pressed
+  assert.match(chipsHtml(new Set(["birke"])), /data-id="birke" aria-pressed="true"><svg[^>]+><path fill="#2a78d6"/);
+});
