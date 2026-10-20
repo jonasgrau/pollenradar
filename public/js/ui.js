@@ -57,8 +57,9 @@ export function seasonText({ genera, month, days }) {
   return `${subject} meist ab ${MONTH_NAMES[month]}, ${untilText(days)}.`;
 }
 
-export function heroContent(forecast, selected, pollenError) {
+export function heroContent(forecast, selected, pollenError, loading = false) {
   const chosen = POLLEN.filter((g) => selected.has(g.id));
+  if (loading) return { title: "Pollenflug heute", step: 0, color: null, text: "Vorhersage wird geladen …" };
   if (pollenError) {
     return { title: "Vorhersage nicht erreichbar", step: 0, color: null, text: "Die Bäume auf der Karte sind trotzdem da. Wir versuchen es gleich erneut." };
   }
@@ -79,9 +80,10 @@ export function heroContent(forecast, selected, pollenError) {
   return { title: `${top.g.name}: ${top.level.label}`, step: top.level.step, color: top.g.color, text: `${later[0].toUpperCase()}${later.slice(1)}.` };
 }
 
+// The pressed state (and the white icon that goes with it) is set by aria-pressed and CSS,
+// so toggling a chip never rebuilds the row: focus and scroll position stay put.
 function chipHtml(g, selected) {
-  const on = selected.has(g.id);
-  return `<button class="chip" type="button" data-id="${g.id}" aria-pressed="${on}">${shapeIcon(g, on ? "#fff" : g.color)}${g.name}</button>`;
+  return `<button class="chip" type="button" data-id="${g.id}" aria-pressed="${selected.has(g.id)}">${shapeIcon(g)}${g.name}</button>`;
 }
 
 export function chipsHtml(selected) {
