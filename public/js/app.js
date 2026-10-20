@@ -171,6 +171,16 @@ function locate() {
 }
 $("locate").addEventListener("click", locate);
 $("locate-panel").addEventListener("click", locate);
+// On phones the search floats at the top of the screen. The glass panel's backdrop-filter would
+// pin a fixed child to the panel instead, so the search moves out of the panel there.
+const phone = window.matchMedia("(max-width: 640px)");
+function placeSearch() {
+  const search = document.querySelector(".search");
+  if (phone.matches) document.body.prepend(search);
+  else $("panel").insertBefore(search, document.querySelector(".hero"));
+}
+phone.addEventListener("change", placeSearch);
+placeSearch();
 setupSearch({
   input: $("search-input"),
   list: $("search-results"),

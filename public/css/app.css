@@ -58,18 +58,42 @@ a { color: inherit; text-underline-offset: 2px; }
   left: 16px;
   width: 400px;
   max-height: calc(100% - 32px);
+  overflow-x: hidden;
   overflow-y: auto;
   background: var(--surface);
-  border-radius: 18px;
+  border-radius: 28px;
   box-shadow: var(--shadow);
 }
 .panel > section { padding: 16px 20px; border-top: 1px solid var(--rule); }
+
+/* Liquid glass: the panel floats over the map as a thick, frosted layer with a lit rim.
+   Opaque enough (about 80 %) that text keeps its contrast over the colourful map. */
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .panel {
+    background:
+      linear-gradient(165deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0) 38%),
+      rgba(237, 240, 234, 0.8);
+    -webkit-backdrop-filter: blur(30px) saturate(175%);
+    backdrop-filter: blur(30px) saturate(175%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.9),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.45),
+      inset 0 -1px 0 rgba(30, 42, 34, 0.06),
+      0 1px 2px rgba(20, 30, 24, 0.08),
+      0 24px 60px rgba(20, 30, 24, 0.24);
+  }
+  .panel > section { border-top-color: rgba(30, 42, 34, 0.1); }
+  /* Controls inside the glass are tinted, not another layer of glass */
+  .search-input { background: rgba(30, 42, 34, 0.06); border-color: transparent; }
+  .chip, .btn { border-color: rgba(30, 42, 34, 0.16); }
+}
 .grip { display: none; }
 
 /* Hero: the pollen clock with today's reading beside it */
 .hero { padding: 28px 20px 16px 34px; }
-.hero-main { display: grid; grid-template-columns: 146px 1fr; gap: 30px; align-items: center; }
-.dial { position: relative; width: 146px; aspect-ratio: 1; }
+.hero-main { display: grid; grid-template-columns: 136px minmax(0, 1fr); gap: 28px; align-items: center; }
+.hero-copy { min-width: 0; container-type: inline-size; }
+.dial { position: relative; width: 136px; aspect-ratio: 1; }
 .clock { display: block; width: 100%; height: 100%; overflow: visible; }
 .clock .track { stroke: var(--empty); }
 .clock .tick { stroke: var(--text-3); stroke-width: 1; }
@@ -84,7 +108,9 @@ a { color: inherit; text-underline-offset: 2px; }
 .q-jul { bottom: -14px; left: 50%; transform: translateX(-50%); }
 .q-okt { left: -24px; top: 50%; transform: translateY(-50%); }
 .q-apr { right: -21px; top: 50%; transform: translateY(-50%); }
-h1 { font-size: 34px; font-weight: 640; letter-spacing: -0.012em; line-height: 1.05; }
+/* The title shrinks with its column so "Pollenpause" fits on one line; at large zoom levels
+   long words hyphenate instead of pushing the panel sideways */
+h1 { font-size: min(31px, 15.5cqi); font-weight: 640; letter-spacing: -0.012em; line-height: 1.08; hyphens: auto; overflow-wrap: break-word; }
 .level { margin-top: 2px; font-size: 20px; font-weight: 420; line-height: 1.25; color: var(--leaf); }
 .hero-text { margin-top: 10px; font-size: 16px; color: var(--text-2); }
 .also { margin-top: 6px; font-size: 14px; color: var(--text-3); }
@@ -259,7 +285,7 @@ h2 { font-size: 18px; font-weight: 640; line-height: 1.25; margin-bottom: 12px; 
     right: 0;
     width: auto;
     max-height: 36vh;
-    border-radius: 18px 18px 0 0;
+    border-radius: 28px 28px 0 0;
     padding-bottom: env(safe-area-inset-bottom);
     transition: max-height 0.25s ease;
   }
@@ -268,7 +294,7 @@ h2 { font-size: 18px; font-weight: 640; line-height: 1.25; margin-bottom: 12px; 
   .grip { display: block; position: relative; z-index: 1; width: 100%; height: 44px; margin-bottom: -26px; padding: 10px 0 0; background: none; border: 0; cursor: pointer; }
   .grip::before { content: ""; display: block; width: 40px; height: 5px; border-radius: 3px; background: #d4d5d9; margin: 0 auto; }
   .hero { padding: 30px 18px 12px 40px; }
-  .hero-main { grid-template-columns: 124px 1fr; gap: 32px; }
+  .hero-main { grid-template-columns: 124px minmax(0, 1fr); gap: 32px; }
   .dial { width: 124px; }
 
   /* Chips as one swipeable row; the group labels become a thin divider but stay readable for screen readers */
@@ -300,7 +326,7 @@ h2 { font-size: 18px; font-weight: 640; line-height: 1.25; margin-bottom: 12px; 
   .search { position: fixed; z-index: 3; top: 12px; left: 12px; right: 12px; padding: 0; }
   .search-input { min-height: 44px; background: var(--surface); box-shadow: var(--shadow-small); border-color: transparent; padding-right: 14px; }
   .search-results { left: 0; right: 0; }
-  h1 { font-size: 28px; }
+  h1 { font-size: min(28px, 15.5cqi); }
   .level { font-size: 17px; }
   .hero-text { margin-top: 6px; font-size: 15px; }
   .locate { top: 64px; right: 12px; padding: 8px 12px; font-size: 13px; }
@@ -336,6 +362,8 @@ h2 { font-size: 18px; font-weight: 640; line-height: 1.25; margin-bottom: 12px; 
 
 /* Glass becomes solid when people ask for less transparency or more contrast */
 @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .panel { background: var(--surface) !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+  .search-input { background: var(--soft) !important; }
   .locate, .density, .map-status { background: var(--surface) !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
 }
 @media (prefers-reduced-transparency: reduce) and (max-width: 640px), (prefers-contrast: more) and (max-width: 640px) {
