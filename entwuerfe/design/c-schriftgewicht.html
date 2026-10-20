@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Entwurf C: Schriftgewicht</title>
+  <link rel="stylesheet" href="/public/vendor/maplibre-gl-4.7.1/maplibre-gl.css" />
+  <link rel="stylesheet" href="base.css" />
+  <style>
+@font-face { font-family: "Hanken Grotesk"; src: url("fonts/hanken-grotesk.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
+/* Weiß, Graphit, Zinn, Linie; Akzent ist die Farbe der jeweiligen Art */
+:root {
+  --panel: #ffffff; --ink: #1d2024; --ink-2: #5d636b; --ink-3: #6b7078; --rule: #e4e6e9; --empty: #eceef0;
+  --chip-on: #1d2024;
+  --font: "Hanken Grotesk", system-ui, sans-serif;
+}
+.hero { padding-top: 22px; }
+.words { display: grid; gap: 2px; }
+.row { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 12px; }
+.word { font-size: 64px; line-height: 0.98; color: var(--ink); transition: font-weight 1100ms cubic-bezier(0.2, 0.7, 0.2, 1); }
+.lv { display: grid; gap: 4px; justify-items: end; min-width: 92px; font-size: 13px; color: var(--ink-2); }
+.lv .meter { width: 92px; }
+.hero-text { margin-top: 14px; font-size: 16px; color: var(--ink-2); }
+.also { margin-top: 8px; font-size: 14px; color: var(--ink-3); }
+h1.state { font-size: 40px; line-height: 1.05; font-weight: 750; letter-spacing: -0.02em; }
+.panel h2 { font-weight: 750; letter-spacing: -0.01em; }
+@media (max-width: 640px) {
+  .hero { padding-top: 14px; }
+  .word { font-size: 48px; }
+  .lv { min-width: 80px; font-size: 12px; }
+  .lv .meter { width: 80px; }
+  .hero-text { margin-top: 8px; font-size: 15px; }
+}
+@media (prefers-reduced-motion: reduce) { .word { transition: none; } }
+  </style>
+</head>
+<body>
+  <div id="map" role="region" aria-label="Karte der Straßenbäume"></div>
+  <button class="locate" id="locate" type="button"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M14.6 1.4 1.6 7.1l5.6 1.7 1.7 5.6z"/></svg>Mein Standort</button>
+  <div class="density" id="density" aria-hidden="true">
+    <strong>Dichte der gewählten Bäume</strong>
+    <div class="ramp"></div>
+    <div class="ramp-labels"><span>wenige</span><span>viele</span></div>
+  </div>
+
+  <aside class="panel" id="panel" aria-label="Pollenflug und Bäume">
+    <button class="grip" id="grip" type="button" aria-label="Bedienfeld aufziehen" aria-expanded="false" aria-controls="panel"></button>
+    <div class="draftbar"><strong>Entwurf C: Schriftgewicht</strong><span id="scenarios"></span><a href="index.html">Alle Entwürfe</a></div>
+    <div class="search" role="search">
+      <label class="sr-only" for="search-input">Straße oder Adresse in Hamburg suchen</label>
+      <input id="search-input" class="search-input" type="search" placeholder="Straße oder Adresse suchen"
+        role="combobox" aria-expanded="false" aria-controls="search-results" aria-autocomplete="list"
+        autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" />
+      <ul class="search-results" id="search-results" role="listbox" aria-label="Suchergebnisse" hidden></ul>
+    </div>
+    <header class="hero" id="hero" aria-live="polite"></header>
+    <div class="chips" id="chips" role="group" aria-label="Worauf reagierst du?"></div>
+
+    <section aria-labelledby="h-forecast">
+      <h2 id="h-forecast">Die nächsten drei Tage</h2>
+      <div id="forecast"></div>
+      <p class="meta" id="forecast-meta"></p>
+    </section>
+
+    <section aria-labelledby="h-around">
+      <h2 id="h-around">Bäume in deiner Nähe</h2>
+      <div class="btns">
+        <button class="btn primary" id="locate-panel" type="button"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M14.6 1.4 1.6 7.1l5.6 1.7 1.7 5.6z"/></svg>Mein Standort</button>
+        <button class="btn" id="example" type="button">Beispiel: Birkengrund</button>
+      </div>
+      <div id="around" aria-live="polite"><p class="hint">Suche eine Adresse oder tippe auf die Karte.</p></div>
+    </section>
+
+    <section>
+      <details>
+        <summary><h2>Wann blüht was?</h2></summary>
+        <div class="calendar" id="calendar"></div>
+        <p class="meta">Typische Blütezeiten in Norddeutschland. Je nach Wetter beginnt die Blüte einige Wochen früher oder später.</p>
+      </details>
+    </section>
+  </aside>
+  <script src="/public/vendor/maplibre-gl-4.7.1/maplibre-gl.js"></script>
+  <script type="module" src="c-schriftgewicht.js"></script>
+</body>
+</html>

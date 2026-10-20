@@ -23,8 +23,8 @@ function markerImage(genus, size = 28) {
 function popupHtml(p) {
   const genus = GENERA.find((g) => g.id === p.g);
   const year = p.jahr ? `gepflanzt ${p.jahr}` : "Pflanzjahr unbekannt";
-  const crown = p.krone ? ` · Krone ${p.krone} m` : "";
-  return `<strong>${esc(p.art)}</strong><br><span>${esc(genus?.name || "")} · ${year}${crown}</span>`;
+  const crown = p.krone ? `, Krone ${p.krone} m breit` : "";
+  return `<strong>${esc(p.art)}</strong><br><span>${esc(genus?.name || "")}, ${year}${crown}</span>`;
 }
 
 export function createMap(container, { onPick, onZoom }) {
