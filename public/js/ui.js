@@ -61,7 +61,7 @@ export function heroContent(forecast, selected, pollenError, loading = false) {
   const chosen = POLLEN.filter((g) => selected.has(g.id));
   if (loading) return { title: "Pollenflug heute", step: 0, color: null, text: "Vorhersage wird geladen …" };
   if (pollenError) {
-    return { title: "Vorhersage nicht erreichbar", step: 0, color: null, text: "Die Bäume auf der Karte sind trotzdem da. Wir versuchen es gleich erneut." };
+    return { title: "Vorhersage nicht erreichbar", step: 0, color: null, text: "Die Bäume auf der Karte sind trotzdem da. Lade die Seite in ein paar Minuten neu." };
   }
   if (!chosen.length) return { title: "Wähle deine Allergien", step: 0, color: null, text: "Dann zeigen wir, was heute fliegt." };
 
@@ -77,7 +77,80 @@ export function heroContent(forecast, selected, pollenError, loading = false) {
     .map((i) => levelOf(forecast[i], top.g))
     .map((l, i) => `${DAY_LABELS[i + 1].toLowerCase()} ${l ? l.label : "keine Angabe"}`)
     .join(", ");
-  return { title: `${top.g.name}: ${top.level.label}`, step: top.level.step, color: top.g.color, text: `${later[0].toUpperCase()}${later.slice(1)}.` };
+  return {
+    title: `${top.g.name}: ${top.level.label}`,
+    name: top.g.name,
+    level: top.level.label,
+    step: top.level.step,
+    color: top.g.color,
+    text: `${later[0].toUpperCase()}${later.slice(1)}.`,
+  };
+}
+
+// Other chosen pollen in the air today, e.g. "Dazu Esche gering bis mittel."
+export function alsoText(forecast, selected) {
+  const flying = POLLEN.filter((g) => selected.has(g.id))
+    .map((g) => ({ g, level: levelOf(forecast[0], g) }))
+    .filter((x) => (x.level?.step ?? 0) > 0)
+    .sort((a, b) => b.level.step - a.level.step)
+    .slice(1);
+  return flying.length ? `Dazu ${flying.map((x) => `${x.g.name} ${x.level.label}`).join(", ")}.` : "";
+}
+
+// Pollen clock: one ring per chosen pollen type with its flowering months, a hand on today.
+// After the phenological clock of the DWD.
+const CLOCK_OUTER = 88;
+const clockPoint = (r, deg) => {
+  const t = ((deg - 90) * Math.PI) / 180;
+  return [r * Math.cos(t), r * Math.sin(t)];
+};
+const n2 = (n) => n.toFixed(2);
+function clockArc(r, a0, a1) {
+  const [x0, y0] = clockPoint(r, a0);
+  const [x1, y1] = clockPoint(r, a1);
+  return `M${n2(x0)} ${n2(y0)}A${r} ${r} 0 0 1 ${n2(x1)} ${n2(y1)}`;
+}
+
+// Position of a date on the year ring, 0° = 1 January at the top, clockwise
+export function dayAngle(iso) {
+  const [y, m, d] = iso.split("-").map(Number);
+  const start = Date.UTC(y, 0, 1);
+  const length = (Date.UTC(y + 1, 0, 1) - start) / 86_400_000;
+  return ((Date.UTC(y, m - 1, d) - start) / 86_400_000 / length) * 360;
+}
+
+export function clockSvg(selected, date) {
+  const chosen = POLLEN.filter((g) => selected.has(g.id));
+  const n = chosen.length;
+  const width = n <= 2 ? 11 : n <= 4 ? 8 : 5.5;
+  const gap = n <= 4 ? 3 : 2;
+  const rings = chosen.map((g, i) => {
+    const r = CLOCK_OUTER - width / 2 - i * (width + gap);
+    return SEASON[g.id].map((v, m) => {
+      const paint = v ? `stroke="${g.color}" stroke-opacity="${v === 2 ? 1 : 0.38}"` : `class="track"`;
+      return `<path d="${clockArc(r, m * 30 + 1.2, (m + 1) * 30 - 1.2)}" stroke-width="${width}" fill="none" ${paint}/>`;
+    }).join("");
+  });
+  const inner = CLOCK_OUTER - n * (width + gap);
+  const face = inner > 34 && date;
+  const ticks = Array.from({ length: 12 }, (_, m) => {
+    const [x1, y1] = clockPoint(CLOCK_OUTER + 3, m * 30);
+    const [x2, y2] = clockPoint(CLOCK_OUTER + (m % 3 ? 6 : 9), m * 30);
+    return `<path class="tick" d="M${n2(x1)} ${n2(y1)}L${n2(x2)} ${n2(y2)}"/>`;
+  });
+  const seasons = chosen.map((g) => {
+    const months = SEASON[g.id].map((v, i) => (v ? MONTH_NAMES[i] : null)).filter(Boolean);
+    return `${g.name} von ${months[0]} bis ${months.at(-1)}`;
+  });
+  const label = seasons.length ? `Blühzeiten im Jahreslauf: ${seasons.join(", ")}. Der Zeiger steht auf heute.` : "Jahreslauf, keine Pollenart gewählt.";
+  const hand = date
+    ? `<g class="hand" style="--angle:${n2(dayAngle(date))}deg"><path d="M0 ${-(face ? inner - 3 : 0)}L0 ${-(CLOCK_OUTER + 9)}"/><circle cy="${-(CLOCK_OUTER + 9)}" r="3.2"/></g>`
+    : "";
+  return `<svg class="clock" viewBox="-100 -100 200 200" role="img" aria-label="${label}">
+    ${ticks.join("")}${rings.join("")}
+    ${face ? `<text class="face-day" y="6">${Number(date.slice(8, 10))}</text><text class="face-month" y="24">${MONTHS[Number(date.slice(5, 7)) - 1]}</text>` : ""}
+    ${hand}${!face && date ? `<circle class="hub" r="4"/>` : ""}
+  </svg>`;
 }
 
 // The pressed state (and the white icon that goes with it) is set by aria-pressed and CSS,
@@ -94,7 +167,7 @@ export function chipsHtml(selected) {
 
 export function forecastHtml(forecast, selected) {
   const chosen = POLLEN.filter((g) => selected.has(g.id));
-  if (!chosen.length) return `<p class="hint">Keine Allergie gewählt.</p>`;
+  if (!chosen.length) return `<p class="hint">Wähle oben, worauf du reagierst.</p>`;
   const head = `<span></span>${DAY_LABELS.map((d) => `<span class="head">${d}</span>`).join("")}`;
   const rows = chosen.map((g) => {
     const cells = forecast.map((day) => {
@@ -106,30 +179,51 @@ export function forecastHtml(forecast, selected) {
   return `<div class="days">${head}${rows.join("")}</div>`;
 }
 
-export function aroundHtml(spot, result, selected, radius) {
-  const chosen = GENERA.filter((g) => selected.has(g.id));
-  if (!chosen.length) return `<p class="hint">Wähle oben eine Baumart, um die Bäume zu zählen.</p>`;
-  const stats = chosen
-    .map((g) => `<div class="stat"><b>${result.counts[g.id] ?? 0}</b><span>${shapeIcon(g)}${g.name}</span></div>`)
-    .join("");
-  const nearest = result.nearest && result.nearest.dist < 1000
-    ? `<p class="meta">Nächster Baum: ${esc(result.nearest.art)}, ${Math.round(result.nearest.dist)} m entfernt</p>`
-    : "";
-  return `<p class="hint">${esc(spot.name)} · Umkreis ${radius} m</p><div class="stats">${stats}</div>${nearest}`;
+// Plural names for sentences like "102 Birken und 1 Esche"
+const PLURAL = { birke: "Birken", erle: "Erlen", hasel: "Haseln", esche: "Eschen" };
+export const countName = (g, n) => (n === 1 ? g.name : PLURAL[g.id] || g.name);
+
+function joinAnd(parts) {
+  return parts.length > 1 ? `${parts.slice(0, -1).join(", ")} und ${parts.at(-1)}` : parts[0];
 }
 
-// Short line for the collapsed phone sheet, e.g. "Birkengrund: 102 Birken · 1 Esche"
+// e.g. "Im Umkreis von 250 m um deinen Standort stehen 102 Birken und 1 Esche."
+export function aroundHtml(spot, result, selected, radius) {
+  const chosen = GENERA.filter((g) => selected.has(g.id));
+  if (!chosen.length) return `<p class="hint">Wähle oben eine Baumart, um die Bäume in der Nähe zu zählen.</p>`;
+  const tally = chosen.map((g) => {
+    const n = result.counts[g.id] ?? 0;
+    return `<span class="tally">${shapeIcon(g)}<b>${n}</b> ${countName(g, n)}</span>`;
+  });
+  const nearest = result.nearest && result.nearest.dist < 1000
+    ? ` Der nächste ist eine ${esc(result.nearest.art)}, ${Math.round(result.nearest.dist)} m entfernt.`
+    : "";
+  return `<p class="around-text">Im Umkreis von ${radius} m um ${esc(spot.phrase)} stehen ${joinAnd(tally)}.${nearest}</p>`;
+}
+
+// Short line for the collapsed phone sheet, e.g. "Dein Standort: 102 Birken, 1 Esche"
 export function spotSummaryHtml(spot, result, selected) {
   const chosen = GENERA.filter((g) => selected.has(g.id));
   if (!chosen.length) return "";
-  const parts = chosen.map((g) => `<span>${shapeIcon(g, g.color, 12)}<b>${result.counts[g.id] ?? 0}</b> ${g.name}</span>`);
+  const parts = chosen.map((g) => {
+    const n = result.counts[g.id] ?? 0;
+    return `<span>${shapeIcon(g, g.color, 12)}<b>${n}</b> ${countName(g, n)}</span>`;
+  });
   return `<span>${esc(spot.name)}:</span>${parts.join("")}`;
 }
 
-export function calendarHtml() {
-  const head = `<span></span>${MONTHS.map((m) => `<span class="m" title="${m}">${m[0]}</span>`).join("")}`;
-  const rows = POLLEN.map((g) => `<span class="gen">${shapeIcon(g)}${g.name}</span>${SEASON[g.id]
-    .map((v, i) => `<i title="${MONTHS[i]}: ${["keine Blüte", "Blüte möglich", "Hauptblüte"][v]}"${v ? ` style="background:${g.color};opacity:${v === 2 ? 1 : 0.45}"` : ""}></i>`)
-    .join("")}`);
-  return head + rows.join("");
+// "2026-10-20 11:00 Uhr" -> "heute, 11 Uhr", "gestern, 11 Uhr" or "Montag, 19. Oktober, 11 Uhr"
+export function updatedText(updated, today) {
+  const m = /^(\d{4}-\d{2}-\d{2})\D+(\d{1,2}):(\d{2})/.exec(updated || "");
+  if (!m) return updated || "";
+  const hour = m[3] === "00" ? `${Number(m[2])} Uhr` : `${Number(m[2])}.${m[3]} Uhr`;
+  const shift = (iso, n) => {
+    const d = new Date(`${iso}T12:00:00Z`);
+    d.setUTCDate(d.getUTCDate() + n);
+    return d.toISOString().slice(0, 10);
+  };
+  if (m[1] === today) return `heute, ${hour}`;
+  if (m[1] === shift(today, -1)) return `gestern, ${hour}`;
+  const day = new Date(`${m[1]}T12:00:00Z`).toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
+  return `${day}, ${hour}`;
 }

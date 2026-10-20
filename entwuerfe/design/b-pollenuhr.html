@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Entwurf B: Pollenuhr</title>
+  <link rel="stylesheet" href="/public/vendor/maplibre-gl-4.7.1/maplibre-gl.css" />
+  <link rel="stylesheet" href="base.css" />
+  <style>
+@font-face { font-family: "Literata"; src: url("fonts/literata.woff2") format("woff2"); font-weight: 200 900; font-display: swap; }
+/* Nebel, Moor, Rinde, Saat, Laub */
+:root {
+  --panel: #edf0ea; --ink: #1e2a22; --ink-2: #5e5c51; --ink-3: #6a685c; --rule: #d6dbcf; --empty: #dfe3d8;
+  --chip-on: #1e2a22; --leaf: #3f6b4e;
+  --font: "Literata", Georgia, serif;
+}
+body { line-height: 1.55; font-optical-sizing: auto; }
+.hero { display: grid; grid-template-columns: 146px 1fr; gap: 30px; align-items: center; padding-left: 36px; padding-top: 30px; padding-bottom: 18px; }
+.dial { position: relative; width: 146px; aspect-ratio: 1; }
+.clock { display: block; width: 100%; height: 100%; overflow: visible; }
+.clock .track { stroke: var(--empty); }
+.clock .tick { stroke: var(--ink-3); stroke-width: 1; }
+.clock .face-day { font: 600 30px var(--font); text-anchor: middle; fill: var(--ink); }
+.clock .face-month { font: 400 13px var(--font); text-anchor: middle; fill: var(--ink-2); }
+.clock .hand { transform: rotate(var(--angle)); transition: transform 1200ms cubic-bezier(0.2, 0.7, 0.2, 1); }
+.clock .hand.from-jan { transform: rotate(0deg); transition: none; }
+.clock .hand path { stroke: var(--leaf); stroke-width: 2.4; stroke-linecap: round; }
+.clock .hand circle, .clock .hub { fill: var(--leaf); }
+.q { position: absolute; font-size: 11px; color: var(--ink-3); line-height: 1; }
+.q-jan { top: -14px; left: 50%; transform: translateX(-50%); }
+.q-okt { left: -22px; top: 50%; transform: translateY(-50%); }
+.q-apr { right: -20px; top: 50%; transform: translateY(-50%); }
+.q-jul { bottom: -14px; left: 50%; transform: translateX(-50%); }
+h1 { font-size: 34px; line-height: 1.05; font-weight: 640; letter-spacing: -0.012em; }
+.level { margin-top: 2px; font-size: 20px; line-height: 1.25; font-style: normal; font-weight: 420; color: var(--leaf); }
+.hero-text { margin-top: 10px; font-size: 16px; color: var(--ink-2); }
+.also { margin-top: 6px; font-size: 14px; color: var(--ink-3); }
+.panel h2 { font-weight: 640; font-size: 18px; }
+@media (max-width: 640px) {
+  .hero { grid-template-columns: 124px 1fr; gap: 32px; padding-left: 40px; padding-top: 26px; padding-bottom: 16px; }
+  .dial { width: 124px; }
+  h1 { font-size: 28px; }
+  .level { font-size: 17px; }
+  .hero-text { font-size: 15px; margin-top: 6px; }
+}
+  </style>
+</head>
+<body>
+  <div id="map" role="region" aria-label="Karte der Straßenbäume"></div>
+  <button class="locate" id="locate" type="button"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M14.6 1.4 1.6 7.1l5.6 1.7 1.7 5.6z"/></svg>Mein Standort</button>
+  <div class="density" id="density" aria-hidden="true">
+    <strong>Dichte der gewählten Bäume</strong>
+    <div class="ramp"></div>
+    <div class="ramp-labels"><span>wenige</span><span>viele</span></div>
+  </div>
+
+  <aside class="panel" id="panel" aria-label="Pollenflug und Bäume">
+    <button class="grip" id="grip" type="button" aria-label="Bedienfeld aufziehen" aria-expanded="false" aria-controls="panel"></button>
+    <div class="draftbar"><strong>Entwurf B: Pollenuhr</strong><span id="scenarios"></span><a href="index.html">Alle Entwürfe</a></div>
+    <div class="search" role="search">
+      <label class="sr-only" for="search-input">Straße oder Adresse in Hamburg suchen</label>
+      <input id="search-input" class="search-input" type="search" placeholder="Straße oder Adresse suchen"
+        role="combobox" aria-expanded="false" aria-controls="search-results" aria-autocomplete="list"
+        autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" />
+      <ul class="search-results" id="search-results" role="listbox" aria-label="Suchergebnisse" hidden></ul>
+    </div>
+    <header class="hero" id="hero" aria-live="polite"></header>
+    <div class="chips" id="chips" role="group" aria-label="Worauf reagierst du?"></div>
+
+    <section aria-labelledby="h-forecast">
+      <h2 id="h-forecast">Die nächsten drei Tage</h2>
+      <div id="forecast"></div>
+      <p class="meta" id="forecast-meta"></p>
+    </section>
+
+    <section aria-labelledby="h-around">
+      <h2 id="h-around">Bäume in deiner Nähe</h2>
+      <div class="btns">
+        <button class="btn primary" id="locate-panel" type="button"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M14.6 1.4 1.6 7.1l5.6 1.7 1.7 5.6z"/></svg>Mein Standort</button>
+        <button class="btn" id="example" type="button">Beispiel: Birkengrund</button>
+      </div>
+      <div id="around" aria-live="polite"><p class="hint">Suche eine Adresse oder tippe auf die Karte.</p></div>
+    </section>
+  </aside>
+  <script src="/public/vendor/maplibre-gl-4.7.1/maplibre-gl.js"></script>
+  <script type="module" src="b-pollenuhr.js"></script>
+</body>
+</html>
