@@ -42,13 +42,11 @@ export const SEASON = {
   ambrosia: [0, 0, 0, 0, 0, 0, 0, 1, 2, 1, 0, 0],
 };
 
-// Density as a classic heatmap, from few (blue) to many trees (red): [density, colour]
+// Density in the colours of the pollen clock, from few (Laub, faint) over pollen ochre to many trees (rust): [density, colour]
 export const DENSITY_STOPS = [
-  [0, "rgba(33,102,172,0)"],
-  [0.1, "rgba(65,105,225,0.55)"],
-  [0.3, "#00bcd4"],
-  [0.5, "#4caf50"],
-  [0.7, "#ffeb3b"],
-  [0.85, "#ff9800"],
-  [1, "#e53935"],
+  [0, "rgba(63,107,78,0)"],
+  [0.1, "rgba(63,107,78,0.35)"],
+  [0.4, "rgba(63,107,78,0.75)"],
+  [0.7, "#c08a2e"],
+  [1, "#9a3f1d"],
 ];
