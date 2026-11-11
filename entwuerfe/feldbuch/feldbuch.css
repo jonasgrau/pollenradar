@@ -1,0 +1,169 @@
+/* Entwurf D: Pollen-Feldbuch. Paper, ink, a typewriter for the facts and a pencil for the notes. */
+
+@font-face { font-family: "Fell"; src: url("fonts/fell.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "Fell"; font-style: italic; src: url("fonts/fell-italic.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "Courier Prime"; src: url("fonts/courier.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "Courier Prime"; font-weight: 700; src: url("fonts/courier-bold.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "Reenie"; src: url("fonts/reenie.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "Literata"; src: url("/public/fonts/literata.woff2") format("woff2"); font-weight: 200 900; font-display: swap; }
+
+:root {
+  --paper: #efe8d6;
+  --paper-2: #e6ddc6;
+  --ink: #26221b;
+  --ink-2: #4f493d;
+  --pencil: #6e685b;
+  --rule: #c9bea3;
+  --stamp: #a3362c;
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .3 0 0 0 0 .2 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { min-height: 100%; }
+body {
+  background: var(--paper) var(--grain);
+  color: var(--ink);
+  font: 16px/1.6 "Literata", Georgia, serif;
+  -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+:focus-visible { outline: 2px dashed var(--ink); outline-offset: 3px; }
+
+.typed { font-family: "Courier Prime", ui-monospace, monospace; }
+.small { font-size: 12.5px; letter-spacing: 0.04em; }
+.note { font-size: 14px; color: var(--pencil); font-style: italic; }
+
+/* Spread: the journal page on the left, the glued-in map plate on the right */
+.book { display: grid; grid-template-columns: minmax(380px, 470px) 1fr; min-height: 100vh; }
+.page { padding: 34px 40px 40px 48px; border-right: 1px solid var(--rule); box-shadow: inset -18px 0 24px -22px rgba(60, 45, 20, 0.35); }
+.page > section { padding: 26px 0 6px; border-top: 1px solid var(--ink); margin-top: 26px; }
+
+.masthead { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+h1 { font: 400 46px/1 "Fell", Georgia, serif; letter-spacing: -0.01em; margin-top: 6px; hyphens: manual; }
+h2 { font: 400 22px/1.2 "Fell", Georgia, serif; margin-bottom: 8px; }
+h2 .typed { font-size: 15px; margin-right: 6px; color: var(--pencil); }
+
+.stamp {
+  flex: none;
+  margin-top: 4px;
+  padding: 6px 10px 5px;
+  border: 2px solid var(--stamp);
+  border-radius: 3px;
+  color: var(--stamp);
+  font: 700 13px/1.25 "Courier Prime", monospace;
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-transform: uppercase;
+  transform: rotate(-4deg);
+  opacity: 0.86;
+  mix-blend-mode: multiply;
+  -webkit-mask-image: var(--grain), linear-gradient(#000, #000);
+  -webkit-mask-composite: source-over;
+}
+.stamp b { display: block; font-size: 20px; letter-spacing: 0.04em; }
+
+.entry { position: relative; border-top: 0 !important; margin-top: 18px !important; padding-top: 0 !important; }
+.verdict { margin-top: 10px; font: italic 400 38px/1.08 "Fell", Georgia, serif; max-width: 13ch; }
+.entry-text { margin-top: 12px; font-size: 17px; color: var(--ink-2); max-width: 30ch; }
+.entry-also { margin-top: 4px; font-size: 15px; color: var(--pencil); }
+.pencil {
+  position: absolute;
+  right: 0;
+  bottom: -8px;
+  max-width: 9em;
+  font: 27px/0.95 "Reenie", cursive;
+  color: #5a5547;
+  transform: rotate(-7deg);
+  text-align: center;
+}
+.pencil:empty { display: none; }
+.pencil::after { content: ""; display: block; height: 10px; margin: 2px auto 0; width: 70%; border-bottom: 2px solid currentColor; border-radius: 50%; opacity: 0.55; }
+
+/* Plates I to IV: every street tree of the genus, plotted like a distribution map */
+.plates { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
+.plate { position: relative; text-align: left; padding: 8px 8px 10px; background: rgba(255, 252, 240, 0.35); border: 1px solid var(--rule); transition: transform 120ms ease-out; }
+.plate:nth-child(odd) { transform: rotate(-0.6deg); }
+.plate:nth-child(even) { transform: rotate(0.5deg); }
+.plate:active { transform: scale(0.98); }
+.plate canvas { display: block; width: 100%; aspect-ratio: 4 / 3; }
+.plate .cap { display: block; margin-top: 6px; font-size: 13px; line-height: 1.35; }
+.plate .cap i { font-family: "Fell", serif; font-size: 17px; }
+.plate .cap .typed { display: block; font-size: 11.5px; color: var(--pencil); }
+.plate[aria-pressed="false"] canvas, .plate[aria-pressed="false"] .cap { opacity: 0.38; }
+.plate[aria-pressed="true"] { border-color: var(--ink); }
+.tick { position: absolute; top: -10px; right: -8px; width: 34px; height: 34px; pointer-events: none; }
+.tick path { fill: none; stroke: var(--stamp); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.plate[aria-pressed="false"] .tick { display: none; }
+
+.label { margin-top: 20px; color: var(--pencil); }
+.herbs { list-style: none; margin-top: 6px; display: grid; grid-template-columns: 1fr 1fr; gap: 2px 16px; }
+.herbs button { display: flex; align-items: baseline; gap: 8px; padding: 5px 0; text-align: left; font-size: 15px; }
+.herbs button i { font-family: "Fell", serif; color: var(--pencil); font-size: 14px; }
+.box { position: relative; flex: none; width: 14px; height: 14px; border: 1.5px solid var(--ink); transform: translateY(2px); }
+.box svg { position: absolute; left: -4px; top: -9px; width: 24px; height: 24px; }
+.box path { fill: none; stroke: var(--stamp); stroke-width: 2.6; stroke-linecap: round; }
+[aria-pressed="false"] .box svg { display: none; }
+[aria-pressed="false"] .herb-name { color: var(--pencil); }
+
+/* Forecast as a typed table */
+.forecast { width: 100%; border-collapse: collapse; margin-top: 10px; font-family: "Courier Prime", monospace; font-size: 13px; }
+.forecast th { font-weight: 400; text-align: left; color: var(--pencil); padding: 0 6px 6px 0; border-bottom: 1px solid var(--ink); }
+.forecast td { padding: 9px 6px 9px 0; border-bottom: 1px dotted var(--rule); vertical-align: top; }
+.forecast td:first-child { font: 400 17px/1.2 "Fell", serif; white-space: nowrap; }
+.dots { display: flex; gap: 3px; margin-bottom: 3px; }
+.dots i { width: 7px; height: 7px; border-radius: 50%; border: 1px solid var(--ink-2); }
+.dots i.on { background: var(--ink); border-color: var(--ink); }
+.forecast small { display: block; font-size: 12px; line-height: 1.25; color: var(--ink-2); }
+
+/* Address field as a line to write on */
+.field { position: relative; display: flex; align-items: baseline; gap: 10px; margin-top: 10px; }
+.field label { color: var(--pencil); }
+.field input { flex: 1; min-width: 0; padding: 6px 0; border: 0; border-bottom: 1.5px solid var(--ink); background: transparent; font: italic 17px "Fell", serif; color: var(--ink); -webkit-appearance: none; appearance: none; }
+.field input::placeholder { color: var(--pencil); }
+.field input:focus { outline: none; border-bottom-style: dashed; }
+.search-results { position: absolute; z-index: 5; left: 34px; right: 0; top: 100%; list-style: none; background: var(--paper) var(--grain); border: 1px solid var(--ink); box-shadow: 4px 4px 0 rgba(40, 30, 10, 0.15); }
+.search-results .option { display: flex; justify-content: space-between; gap: 10px; padding: 8px 10px; font-size: 14px; cursor: pointer; }
+.search-results .option small { font: 11px "Courier Prime", monospace; color: var(--pencil); }
+.search-results .option[aria-selected="true"], .search-results .option:hover { background: var(--paper-2); }
+.search-results .message { padding: 8px 10px; font-size: 14px; color: var(--pencil); }
+.links { display: flex; flex-wrap: wrap; gap: 4px 18px; margin: 12px 0 10px; }
+.links button { font: 14px "Courier Prime", monospace; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; padding: 4px 0; }
+#around p { font-size: 16px; color: var(--ink-2); }
+#around b { font-family: "Reenie", cursive; font-size: 26px; font-weight: 400; color: var(--stamp); line-height: 0.8; }
+
+.colophon { margin-top: 34px; padding-top: 14px; border-top: 1px solid var(--ink); color: var(--pencil); line-height: 1.5; display: grid; gap: 6px; }
+
+/* The map, glued in with two strips of tape */
+.plate-map { position: sticky; top: 0; height: 100vh; padding: 34px 40px 52px 36px; display: flex; flex-direction: column; }
+.map-frame { position: relative; flex: 1; border: 1px solid var(--ink); padding: 6px; background: #f6f1e3; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05), 6px 8px 18px -10px rgba(60, 40, 10, 0.45); transform: rotate(0.25deg); }
+#map { position: absolute; inset: 6px; }
+.grain { position: absolute; inset: 6px; pointer-events: none; background: var(--grain); mix-blend-mode: multiply; opacity: 0.55; }
+.tape { position: absolute; z-index: 3; width: 120px; height: 30px; background: rgba(232, 220, 182, 0.72); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08); }
+.tape-a { top: 22px; left: 24px; transform: rotate(-32deg); }
+.tape-b { top: 22px; right: 26px; transform: rotate(28deg); }
+figcaption { margin-top: 12px; font-size: 14px; color: var(--ink-2); }
+figcaption .typed { margin-right: 6px; }
+figcaption em { font-family: "Fell", serif; font-size: 16px; }
+
+.maplibregl-ctrl-group { border-radius: 0 !important; border: 1px solid var(--ink); box-shadow: none !important; background: var(--paper) !important; }
+.maplibregl-popup-content { font: 14px/1.4 "Literata", serif; background: var(--paper); border: 1px solid var(--ink); border-radius: 0; box-shadow: 3px 3px 0 rgba(40, 30, 10, 0.15); }
+.maplibregl-popup-content i { font-family: "Fell", serif; font-size: 16px; }
+.maplibregl-popup-tip { display: none; }
+
+@media (max-width: 760px) {
+  .book { display: flex; flex-direction: column-reverse; }
+  .plate-map { position: relative; height: 52vh; padding: 18px 16px 34px; }
+  .tape { width: 84px; height: 24px; }
+  .tape-a { top: 8px; left: 6px; }
+  .tape-b { top: 8px; right: 8px; }
+  .page { padding: 18px 20px 32px; border-right: 0; box-shadow: none; }
+  h1 { font-size: 40px; }
+  .verdict { font-size: 34px; }
+  .pencil { position: static; margin: 4px 0 0 auto; font-size: 24px; max-width: 8em; }
+  .plates { gap: 10px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plate { transition: none; }
+}

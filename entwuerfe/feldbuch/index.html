@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Entwurf D: Pollen-Feldbuch</title>
+  <link rel="stylesheet" href="/public/vendor/maplibre-gl-4.7.1/maplibre-gl.css" />
+  <link rel="stylesheet" href="feldbuch.css" />
+  <script src="/public/vendor/maplibre-gl-4.7.1/maplibre-gl.js"></script>
+  <script type="module" src="feldbuch.js"></script>
+</head>
+<body>
+  <main class="book">
+    <article class="page" aria-label="Pollen-Feldbuch">
+      <header class="masthead">
+        <div>
+          <p class="typed small">Hamburg · Straßenbäume &amp; Pollenflug</p>
+          <h1>Pollen&shy;feldbuch</h1>
+        </div>
+        <p class="stamp" id="stamp" aria-hidden="true"></p>
+      </header>
+
+      <section class="entry" aria-live="polite">
+        <p class="typed small" id="entry-no"></p>
+        <p class="verdict" id="verdict">Pollenflug heute …</p>
+        <p class="entry-text" id="entry-text"></p>
+        <p class="entry-also" id="entry-also"></p>
+        <p class="pencil" id="pencil" aria-hidden="true"></p>
+      </section>
+
+      <section aria-labelledby="h-tafeln">
+        <h2 id="h-tafeln"><span class="typed">I.</span> Worauf ich reagiere</h2>
+        <p class="note">Tafeln I–IV zeigen jeden Straßenbaum der Gattung in Hamburg. Antippen zum An- und Abwählen.</p>
+        <div class="plates" id="plates"></div>
+        <p class="typed small label">Ohne Kataster, nur Vorhersage</p>
+        <ul class="herbs" id="herbs"></ul>
+      </section>
+
+      <section aria-labelledby="h-forecast">
+        <h2 id="h-forecast"><span class="typed">II.</span> Die nächsten drei Tage</h2>
+        <table class="forecast" id="forecast"></table>
+        <p class="note" id="forecast-meta"></p>
+      </section>
+
+      <section aria-labelledby="h-around">
+        <h2 id="h-around"><span class="typed">III.</span> Bäume vor meiner Tür</h2>
+        <div class="field">
+          <label class="typed small" for="search-input">Ort</label>
+          <input id="search-input" type="search" placeholder="Straße oder Adresse in Hamburg"
+            role="combobox" aria-expanded="false" aria-controls="search-results" aria-autocomplete="list"
+            autocomplete="off" spellcheck="false" enterkeyhint="search" />
+          <ul class="search-results" id="search-results" role="listbox" hidden></ul>
+        </div>
+        <p class="links">
+          <button type="button" id="locate">→ mein Standort</button>
+          <button type="button" id="example">→ Beispiel: Birkengrund, Niendorf</button>
+        </p>
+        <div id="around"><p class="note">Oder einfach auf die Karte tippen.</p></div>
+      </section>
+
+      <footer class="colophon typed small">
+        <p>Pollenflug: Deutscher Wetterdienst, CC BY 4.0. Bäume: Straßenbaumkataster der Freien und Hansestadt Hamburg, DL-DE BY 2.0 <span id="trees-updated"></span>. Karte: basemap.de / BKG.</p>
+        <p>Nur Straßenbäume, Parks und Gärten fehlen. Orientierung, keine medizinische Beratung.</p>
+      </footer>
+    </article>
+
+    <figure class="plate-map">
+      <div class="tape tape-a" aria-hidden="true"></div>
+      <div class="tape tape-b" aria-hidden="true"></div>
+      <div class="map-frame">
+        <div id="map" role="region" aria-label="Karte der Straßenbäume"></div>
+        <div class="grain" aria-hidden="true"></div>
+      </div>
+      <figcaption><span class="typed">Abb. 1</span> <em id="caption">Allergierelevante Straßenbäume in Hamburg.</em></figcaption>
+    </figure>
+  </main>
+</body>
+</html>
