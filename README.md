@@ -63,7 +63,7 @@ api/pollen.js    Vercel function
 
 The address search uses the city's official address service (`POST https://api.hamburg.de/addr_search`, the same one the Hamburg geoportal uses). It knows streets and house numbers, returns WGS84 coordinates and allows cross-origin requests, so the browser queries it directly; no search text goes to Google or other third parties.
 
-Zoomed out, a classic heatmap (blue = few, red = many trees) shows where the selected trees cluster; from street level on each tree is a marker in its genus colour and shape. Trees whose pollen is not in the air today are dimmed.
+Zoomed out, a heatmap in the colours of the pollen clock (faint green = few, ochre to rust = many trees) shows where the selected trees cluster; from street level on each tree is a marker in its genus colour and shape. Trees whose pollen is not in the air today are dimmed.
 
 When none of the chosen pollen types is in season and nothing is flying, the panel shows a "Pollenpause" with the next usual start (e.g. "Birke und Esche blühen meist ab März, in rund 5 Monaten.").
 

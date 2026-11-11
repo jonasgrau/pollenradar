@@ -81,14 +81,6 @@ function renderAround() {
   $("spot-summary").hidden = !summary;
 }
 
-// Phones show the chips as one swipeable row; fade the edges that have more chips behind them
-function updateChipFades() {
-  const row = $("chips");
-  const scrollable = row.scrollWidth > row.clientWidth + 1;
-  row.classList.toggle("fade-start", scrollable && row.scrollLeft > 1);
-  row.classList.toggle("fade-end", scrollable && row.scrollLeft + row.clientWidth < row.scrollWidth - 1);
-}
-
 function renderAll() {
   for (const chip of $("chips").querySelectorAll(".chip")) {
     chip.setAttribute("aria-pressed", String(state.selected.has(chip.dataset.id)));
@@ -194,9 +186,6 @@ $("grip").addEventListener("click", () => {
 });
 
 $("chips").innerHTML = chipsHtml(state.selected);
-$("chips").addEventListener("scroll", updateChipFades, { passive: true });
-window.addEventListener("resize", updateChipFades);
-updateChipFades();
 // iOS Safari only applies :active (the press feedback) when a touch listener exists
 document.addEventListener("touchstart", () => {}, { passive: true });
 fetchJson("/data/trees/meta.json")
