@@ -7,18 +7,19 @@ export const DENSITY_UNTIL = 13.5; // zoomed out: density; zoomed in: single tre
 export const BASEMAP = "https://sgx.geodatenzentrum.de/gdz_basemapde_vektor/styles/bm_web_col.json";
 export const DEFAULT_SELECTION = ["birke", "esche"];
 
-// Colours checked with the palette validator (all pairs, incl. colour vision deficiency).
+// Natural inks: birch slate blue, alder rust, hazel ochre, ash plum. Checked pairwise in CIELAB,
+// also under simulated protan, deutan and tritan vision; 3:1 or more against the panel.
 // Each genus also has its own marker shape, so colour never carries identity alone.
 export const GENERA = [
-  { id: "birke", name: "Birke", shape: "circle", color: "#2a78d6" },
-  { id: "erle", name: "Erle", shape: "square", color: "#eb6834" },
-  { id: "hasel", name: "Hasel", shape: "triangle", color: "#1baf7a" },
-  { id: "esche", name: "Esche", shape: "diamond", color: "#4a3aa7" },
+  { id: "birke", name: "Birke", shape: "circle", color: "#3d5a80" },
+  { id: "erle", name: "Erle", shape: "square", color: "#a8452c" },
+  { id: "hasel", name: "Hasel", shape: "triangle", color: "#a37a12" },
+  { id: "esche", name: "Esche", shape: "diamond", color: "#6a3d5a" },
 ];
 
 // Pollen the DWD forecasts but the tree register does not contain: forecast only, no map layer.
 // They share one colour; the label and the grass icon tell them apart.
-export const HERB_COLOR = "#8a6412";
+export const HERB_COLOR = "#7a6a3a";
 export const HERBS = [
   { id: "graeser", name: "Gräser", dwd: "Graeser", plural: true },
   { id: "roggen", name: "Roggen", dwd: "Roggen" },

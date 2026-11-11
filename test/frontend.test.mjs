@@ -206,7 +206,7 @@ test("heroContent says the forecast is loading before anything else", () => {
   const hero = heroContent(forecastFromToday(null, "2027-04-14"), new Set(["birke"]), false, true);
   assert.equal(hero.text, "Vorhersage wird geladen …");
   // Chips carry their colour icon in both states; CSS turns it white when pressed
-  assert.match(chipsHtml(new Set(["birke"])), /data-id="birke" aria-pressed="true"><svg[^>]+><path fill="#2a78d6"/);
+  assert.match(chipsHtml(new Set(["birke"])), /data-id="birke" aria-pressed="true"><svg[^>]+><path fill="#3d5a80"/);
 });
 
 test("heroContent splits name and level while pollen is flying", () => {
@@ -226,7 +226,7 @@ test("dayAngle puts dates on the year ring", () => {
 test("clockSvg draws one ring of twelve months per chosen pollen and a hand on today", () => {
   const svg = clockSvg(new Set(["birke", "esche"]), "2027-04-14");
   assert.equal(svg.match(/stroke-width="11"/g).length, 24);
-  assert.match(svg, /stroke="#2a78d6" stroke-opacity="1"/); // birch main season
+  assert.match(svg, /stroke="#3d5a80" stroke-opacity="1"/); // birch main season
   assert.match(svg, /class="hand" style="--angle:101\.\d+deg"/);
   assert.match(svg, /<text class="face-day" y="6">14<\/text>/);
   assert.match(svg, /aria-label="Blühzeiten im Jahreslauf: Birke von März bis Mai, Esche von März bis Mai\./);

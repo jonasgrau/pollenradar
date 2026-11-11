@@ -4,6 +4,10 @@
   font-weight: 200 900;
   font-display: swap;
 }
+/* Barlow Semi Condensed for titles and labels: narrow and upright like Hamburg's street signs */
+@font-face { font-family: "Barlow Semi Condensed"; src: url("/fonts/barlow-semi-condensed-500.woff2") format("woff2"); font-weight: 500; font-display: swap; }
+@font-face { font-family: "Barlow Semi Condensed"; src: url("/fonts/barlow-semi-condensed-600.woff2") format("woff2"); font-weight: 600; font-display: swap; }
+@font-face { font-family: "Barlow Semi Condensed"; src: url("/fonts/barlow-semi-condensed-700.woff2") format("woff2"); font-weight: 700; font-display: swap; }
 
 /* Nebel, Moor, Rinde, Saat, Laub: the palette of the pollen clock */
 :root {
@@ -24,6 +28,7 @@
   --glass: rgba(244, 246, 241, 0.74);
   --glass-edge: rgba(255, 255, 255, 0.6);
   --glass-blur: blur(20px) saturate(180%);
+  --display: "Barlow Semi Condensed", "Arial Narrow", sans-serif;
   color-scheme: light;
 }
 
@@ -97,7 +102,7 @@ a { color: inherit; text-underline-offset: 2px; }
 .clock { display: block; width: 100%; height: 100%; overflow: visible; }
 .clock .track { stroke: var(--empty); }
 .clock .tick { stroke: var(--text-3); stroke-width: 1; }
-.clock .face-day { font: 600 30px "Literata", Georgia, serif; text-anchor: middle; fill: var(--text); }
+.clock .face-day { font: 600 32px var(--display); text-anchor: middle; fill: var(--text); }
 .clock .face-month { font: 400 13px "Literata", Georgia, serif; text-anchor: middle; fill: var(--text-2); }
 .clock .hand { transform: rotate(var(--angle)); transition: transform 1200ms cubic-bezier(0.2, 0.7, 0.2, 1); }
 .clock .hand.from-jan { transform: rotate(0deg); transition: none; }
@@ -110,12 +115,12 @@ a { color: inherit; text-underline-offset: 2px; }
 .q-apr { right: -21px; top: 50%; transform: translateY(-50%); }
 /* The title shrinks with its column so "Pollenpause" fits on one line; at large zoom levels
    long words hyphenate instead of pushing the panel sideways */
-h1 { font-size: min(31px, 15.5cqi); font-weight: 640; letter-spacing: -0.012em; line-height: 1.08; hyphens: auto; overflow-wrap: break-word; }
-.level { margin-top: 2px; font-size: 20px; font-weight: 420; line-height: 1.25; color: var(--leaf); }
+h1 { font-family: var(--display); font-size: min(36px, 18cqi); font-weight: 700; letter-spacing: 0; line-height: 1.08; hyphens: auto; overflow-wrap: break-word; }
+.level { margin-top: 2px; font-family: var(--display); font-size: 22px; font-weight: 500; line-height: 1.25; color: var(--leaf); }
 .hero-text { margin-top: 10px; font-size: 16px; color: var(--text-2); }
 .also { margin-top: 6px; font-size: 14px; color: var(--text-3); }
 .spot-summary { display: none; }
-h2 { font-size: 18px; font-weight: 640; line-height: 1.25; margin-bottom: 12px; }
+h2 { font-family: var(--display); font-size: 19px; font-weight: 600; line-height: 1.25; margin-bottom: 12px; }
 
 .meter { display: flex; gap: 3px; }
 .meter i { flex: 1; height: 7px; border-radius: 2px; background: var(--empty); }
@@ -131,8 +136,9 @@ h2 { font-size: 18px; font-weight: 640; line-height: 1.25; margin-bottom: 12px; 
   border-radius: 999px;
   border: 1px solid var(--rule);
   background: transparent;
-  font-size: 14px;
-  font-weight: 560;
+  font-family: var(--display);
+  font-size: 15px;
+  font-weight: 600;
   color: var(--text-2);
   cursor: pointer;
 }
@@ -141,8 +147,8 @@ h2 { font-size: 18px; font-weight: 640; line-height: 1.25; margin-bottom: 12px; 
 .shape { flex: none; }
 
 .days { display: grid; grid-template-columns: 96px repeat(3, 1fr); gap: 8px 10px; align-items: center; font-size: 14px; }
-.days .head { font-size: 13px; color: var(--text-3); }
-.days .gen { display: flex; align-items: center; gap: 6px; font-weight: 600; }
+.days .head { font-family: var(--display); font-weight: 500; font-size: 14px; color: var(--text-3); }
+.days .gen { display: flex; align-items: center; gap: 6px; font-family: var(--display); font-size: 15px; font-weight: 600; }
 .days small { display: block; margin-top: 4px; font-size: 12px; line-height: 1.25; color: var(--text-2); }
 
 .meta { margin-top: 12px; font-size: 13px; line-height: 1.5; color: var(--text-3); }
@@ -150,7 +156,7 @@ h2 { font-size: 18px; font-weight: 640; line-height: 1.25; margin-bottom: 12px; 
 .error { font-size: 13px; color: var(--error); margin-bottom: 8px; }
 
 .btns { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
-.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 13px; border-radius: 999px; border: 1px solid var(--rule); background: transparent; font-size: 14px; font-weight: 560; cursor: pointer; }
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 13px; border-radius: 999px; border: 1px solid var(--rule); background: transparent; font-family: var(--display); font-size: 15px; font-weight: 600; cursor: pointer; }
 .btn.primary { background: var(--text); border-color: var(--text); color: var(--surface); }
 .icon { width: 14px; height: 14px; flex: none; fill: currentColor; }
 .around-text { font-size: 15px; line-height: 1.65; color: var(--text-2); }
@@ -219,8 +225,9 @@ h2 { font-size: 18px; font-weight: 640; line-height: 1.25; margin-bottom: 12px; 
   border-radius: 999px;
   background: var(--surface);
   color: var(--text);
-  font-size: 14px;
-  font-weight: 650;
+  font-family: var(--display);
+  font-size: 15px;
+  font-weight: 600;
   box-shadow: var(--shadow-small);
   cursor: pointer;
 }
@@ -240,7 +247,7 @@ h2 { font-size: 18px; font-weight: 640; line-height: 1.25; margin-bottom: 12px; 
   color: var(--text-2);
   transition: opacity 0.2s;
 }
-.density strong { display: block; margin-bottom: 6px; font-size: 13px; color: var(--text); }
+.density strong { display: block; margin-bottom: 6px; font-family: var(--display); font-size: 14px; font-weight: 600; color: var(--text); }
 .density.is-hidden, .density.no-trees { opacity: 0; }
 .ramp { height: 8px; border-radius: 3px; background: linear-gradient(90deg, rgba(63, 107, 78, 0.35), #3f6b4e, #c08a2e, #9a3f1d); }
 .ramp-labels { display: flex; justify-content: space-between; margin-top: 4px; }
@@ -300,7 +307,7 @@ h2 { font-size: 18px; font-weight: 640; line-height: 1.25; margin-bottom: 12px; 
   /* All chips stay visible: trees in the first rows, herbs after a line break. The group labels
      are only read by screen readers here; a full-width, zero-height label forces the break. */
   .chips { gap: 6px; margin: 22px 0 0 -22px; }
-  .chip { padding: 6px 10px; font-size: 13.5px; }
+  .chip { padding: 6px 10px; font-size: 14.5px; }
   .chips-label { flex-basis: 100%; height: 0; margin: -3px 0; overflow: hidden; color: transparent; }
   .chips-label:first-child { position: absolute; width: 1px; height: 1px; margin: 0; clip: rect(0 0 0 0); }
   .spot-summary:not([hidden]) {
@@ -319,8 +326,8 @@ h2 { font-size: 18px; font-weight: 640; line-height: 1.25; margin-bottom: 12px; 
   .search { position: fixed; z-index: 3; top: 12px; left: 12px; right: 12px; padding: 0; }
   .search-input { min-height: 44px; background: var(--surface); box-shadow: var(--shadow-small); border-color: transparent; padding-right: 14px; }
   .search-results { left: 0; right: 0; }
-  h1 { font-size: min(28px, 15.5cqi); }
-  .level { font-size: 17px; }
+  h1 { font-size: min(32px, 18cqi); }
+  .level { font-size: 19px; }
   .hero-text { margin-top: 6px; font-size: 15px; }
   .locate { top: 64px; right: 12px; padding: 8px 12px; font-size: 13px; }
   .density { top: 64px; left: 12px; right: auto; bottom: auto; width: 150px; padding: 8px 10px; }
