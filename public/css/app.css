@@ -9,23 +9,23 @@
 @font-face { font-family: "Barlow Semi Condensed"; src: url("/fonts/barlow-semi-condensed-600.woff2") format("woff2"); font-weight: 600; font-display: swap; }
 @font-face { font-family: "Barlow Semi Condensed"; src: url("/fonts/barlow-semi-condensed-700.woff2") format("woff2"); font-weight: 700; font-display: swap; }
 
-/* Nebel, Moor, Rinde, Saat, Laub: the palette of the pollen clock */
+/* White surface; Moor, Rinde and Laub from the palette of the pollen clock */
 :root {
-  --surface: #edf0ea; /* Nebel */
-  --soft: #e3e7de;
-  --text: #1e2a22; /* Moor, 12.9:1 on Nebel */
-  --text-2: #5e5c51; /* Rinde, 5.8:1 */
-  --text-3: #625f54; /* 4.8:1 on --soft */
-  --rule: #d6dbcf;
-  --empty: #dfe3d8; /* Saat */
-  --leaf: #3f6b4e; /* Laub, 5.3:1 */
+  --surface: #ffffff;
+  --soft: #f1f2f0;
+  --text: #1e2a22; /* Moor, 14.8:1 on white */
+  --text-2: #5e5c51; /* Rinde, 6.7:1 */
+  --text-3: #625f54; /* 5.7:1 on --soft */
+  --rule: #dfe2dd;
+  --empty: #e6e8e4;
+  --leaf: #3f6b4e; /* Laub, 6.1:1 */
   --error: #b42318;
   --focus: #1d6fe8;
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 8px 28px rgba(0, 0, 0, 0.12);
   --shadow-small: 0 1px 2px rgba(0, 0, 0, 0.08), 0 4px 14px rgba(0, 0, 0, 0.12);
   /* Frosted glass for small controls floating over the map; the panel stays solid
      because it carries coloured meters and long text */
-  --glass: rgba(244, 246, 241, 0.74);
+  --glass: rgba(255, 255, 255, 0.78);
   --glass-edge: rgba(255, 255, 255, 0.6);
   --glass-blur: blur(20px) saturate(180%);
   --display: "Barlow Semi Condensed", "Arial Narrow", sans-serif;
@@ -77,7 +77,7 @@ a { color: inherit; text-underline-offset: 2px; }
   .panel {
     background:
       linear-gradient(165deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0) 38%),
-      rgba(237, 240, 234, 0.8);
+      rgba(255, 255, 255, 0.84);
     -webkit-backdrop-filter: blur(30px) saturate(175%);
     backdrop-filter: blur(30px) saturate(175%);
     box-shadow:
