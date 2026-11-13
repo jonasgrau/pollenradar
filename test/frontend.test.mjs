@@ -176,7 +176,7 @@ test("heroContent shows the season pause when nothing chosen is in season", () =
 });
 
 import { HERBS, POLLEN } from "../public/js/config.js";
-import { chipsHtml, forecastHtml, clockSvg, dayAngle, updatedText, aroundHtml, alsoText } from "../public/js/ui.js";
+import { chipsHtml, forecastHtml, clockSvg, clockRings, dayAngle, updatedText, aroundHtml, alsoText } from "../public/js/ui.js";
 
 test("grasses and herbs come from the DWD keys and need no tree data", () => {
   const summer = forecastFromToday({ days: [{ date: "2027-06-10", levels: { Birke: lvl(0, "keine"), Graeser: lvl(4, "mittel"), Roggen: lvl(2, "gering") } }] }, "2027-06-10");
@@ -246,4 +246,20 @@ test("aroundHtml writes the tree count as a sentence with plurals", () => {
   assert.match(html, /Im Umkreis von 250 m um deinen Standort stehen/);
   assert.match(html, /<b>102<\/b> Birken<\/span> und <span class="tally">.*<b>1<\/b> Esche/);
   assert.match(html, /Der nächste ist eine Sand-Birke, 4 m entfernt\./);
+});
+
+test("clockRings gives each tree a ring and the herbs one shared ring", () => {
+  const all = new Set(["birke", "erle", "hasel", "esche", "graeser", "roggen", "beifuss", "ambrosia"]);
+  const rings = clockRings(all);
+  assert.equal(rings.length, 5);
+  // grasses from May, ragweed until October: the shared ring covers both
+  assert.deepEqual(rings[4].months, [0, 0, 0, 0, 1, 2, 2, 2, 2, 1, 0, 0]);
+  assert.equal(clockRings(new Set(["graeser"])).length, 1);
+  assert.equal(clockRings(new Set()).length, 0);
+});
+
+test("clockSvg keeps an empty year ring and the date when nothing is chosen", () => {
+  const svg = clockSvg(new Set(), "2026-11-13");
+  assert.equal((svg.match(/class="track"/g) || []).length, 12);
+  assert.match(svg, /face-day/);
 });

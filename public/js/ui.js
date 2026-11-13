@@ -1,6 +1,6 @@
 // HTML building blocks for the panel
 
-import { GENERA, HERBS, MONTHS, POLLEN, SEASON } from "./config.js";
+import { GENERA, HERB_COLOR, HERBS, MONTHS, POLLEN, SEASON } from "./config.js";
 import { levelOf, nextSeason } from "./data.js";
 
 export function esc(value) {
@@ -119,15 +119,31 @@ export function dayAngle(iso) {
   return ((Date.UTC(y, m - 1, d) - start) / 86_400_000 / length) * 360;
 }
 
+// One ring per chosen tree. Grasses and herbs share a colour, so four rings of them could not be told
+// apart: they share one ring with the months in which any of them flowers. At most five rings.
+export function clockRings(selected) {
+  const chosen = POLLEN.filter((g) => selected.has(g.id));
+  const rings = chosen.filter((g) => g.shape !== "grass").map((g) => ({ color: g.color, months: SEASON[g.id] }));
+  const herbs = chosen.filter((g) => g.shape === "grass");
+  if (herbs.length) {
+    rings.push({ color: HERB_COLOR, months: SEASON[herbs[0].id].map((_, m) => Math.max(...herbs.map((h) => SEASON[h.id][m]))) });
+  }
+  return rings;
+}
+
+const EMPTY_YEAR = { color: null, months: Array(12).fill(0) };
+
 export function clockSvg(selected, date) {
   const chosen = POLLEN.filter((g) => selected.has(g.id));
-  const n = chosen.length;
-  const width = n <= 2 ? 11 : n <= 4 ? 8 : 5.5;
+  // Nothing chosen: one empty year ring, so it still reads as a clock
+  const ringList = clockRings(selected);
+  const n = Math.max(1, ringList.length);
+  const width = n <= 2 ? 11 : n <= 4 ? 8 : 6.5;
   const gap = n <= 4 ? 3 : 2;
-  const rings = chosen.map((g, i) => {
+  const rings = (ringList.length ? ringList : [EMPTY_YEAR]).map((ring, i) => {
     const r = CLOCK_OUTER - width / 2 - i * (width + gap);
-    return SEASON[g.id].map((v, m) => {
-      const paint = v ? `stroke="${g.color}" stroke-opacity="${v === 2 ? 1 : 0.38}"` : `class="track"`;
+    return ring.months.map((v, m) => {
+      const paint = v ? `stroke="${ring.color}" stroke-opacity="${v === 2 ? 1 : 0.38}"` : `class="track"`;
       return `<path d="${clockArc(r, m * 30 + 1.2, (m + 1) * 30 - 1.2)}" stroke-width="${width}" fill="none" ${paint}/>`;
     }).join("");
   });

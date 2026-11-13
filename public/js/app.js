@@ -5,6 +5,7 @@ import { setupSearch } from "./search.js";
 import { alsoText, aroundHtml, chipsHtml, clockSvg, forecastHtml, heroContent, spotSummaryHtml, updatedText } from "./ui.js";
 
 const STORAGE_KEY = "pollenkarte.auswahl";
+const SPOT_KEY = "pollenkarte.ort"; // the last chosen spot, so a daily visit opens on your street
 const $ = (id) => document.getElementById(id);
 const phone = window.matchMedia("(max-width: 640px)");
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -34,8 +35,23 @@ function mapPadding() {
     : { bottom: Math.round(window.innerHeight * 0.4), top: 40, left: 20, right: 20 };
 }
 
+function readSpot() {
+  try {
+    const s = JSON.parse(localStorage.getItem(SPOT_KEY));
+    if (s && Number.isFinite(s.lon) && Number.isFinite(s.lat) && typeof s.name === "string" && typeof s.phrase === "string") return s;
+  } catch {}
+  return null;
+}
+
+function saveSpot(spot) {
+  try {
+    if (spot) localStorage.setItem(SPOT_KEY, JSON.stringify({ ...spot, lon: +spot.lon.toFixed(5), lat: +spot.lat.toFixed(5) }));
+    else localStorage.removeItem(SPOT_KEY);
+  } catch {}
+}
+
 const map = createMap("map", {
-  onPick: (lon, lat) => setSpot(lon, lat, "Gewählter Punkt", "den gewählten Punkt", false),
+  onPick: (lon, lat) => setSpot(lon, lat, "Gewählter Punkt", "den gewählten Punkt"),
   onZoom: (zoom) => $("density").classList.toggle("is-hidden", zoom >= DENSITY_UNTIL),
 });
 
@@ -77,7 +93,7 @@ function renderForecast() {
 function renderAround() {
   if (!state.spot) return;
   const result = countAround(state.datasets, state.spot.lon, state.spot.lat, RADIUS_M);
-  $("around").innerHTML = aroundHtml(state.spot, result, state.selected, RADIUS_M);
+  $("around").innerHTML = `${aroundHtml(state.spot, result, state.selected, RADIUS_M)}<button class="text-btn clear-spot" id="clear-spot" type="button">Ort entfernen</button>`;
   const summary = spotSummaryHtml(state.spot, result, state.selected);
   $("spot-summary").innerHTML = summary;
   $("spot-summary").hidden = !summary;
@@ -136,16 +152,29 @@ async function loadPollen() {
   renderForecast();
 }
 
-// name labels the spot on its own, phrase fits into "Im Umkreis von 250 m um …"
-function setSpot(lon, lat, name, phrase, fly) {
+// name labels the spot on its own, phrase fits into "Im Umkreis von 250 m um …".
+// fly: move the map there; restore: the remembered spot on page load (jump, keep the panel at the top)
+function setSpot(lon, lat, name, phrase, { fly = false, restore = false } = {}) {
   state.spot = { lon, lat, name, phrase };
+  saveSpot(state.spot);
   map.showSpot(lon, lat);
-  if (fly) map.flyTo(lon, lat, mapPadding());
+  if (fly || restore) map.flyTo(lon, lat, mapPadding(), restore);
   renderAround();
+  if (restore) return;
   // The answer must not hide behind the control that asked for it: the phone sheet folds down to its
   // summary line over the map, the desktop panel scrolls the count into view
   if (phone.matches) setSheet(false);
   else $("around").scrollIntoView({ block: "nearest", behavior: reducedMotion.matches ? "auto" : "smooth" });
+}
+
+const AROUND_HINT = $("around").innerHTML;
+function clearSpot() {
+  state.spot = null;
+  saveSpot(null);
+  map.clearSpot();
+  $("around").innerHTML = AROUND_HINT;
+  $("spot-summary").hidden = true;
+  $("locate-panel").focus(); // the removed button took the focus with it
 }
 
 function setSheet(open) {
@@ -172,7 +201,7 @@ function locate() {
   if (!navigator.geolocation) return;
   $("locate-error").hidden = true;
   navigator.geolocation.getCurrentPosition(
-    (p) => setSpot(p.coords.longitude, p.coords.latitude, "Dein Standort", "deinen Standort", true),
+    (p) => setSpot(p.coords.longitude, p.coords.latitude, "Dein Standort", "deinen Standort", { fly: true }),
     () => ($("locate-error").hidden = false),
     { enableHighAccuracy: true, timeout: 10_000 },
   );
@@ -192,9 +221,10 @@ setupSearch({
   input: $("search-input"),
   list: $("search-results"),
   status: $("search-status"),
-  onSelect: (place) => setSpot(place.lon, place.lat, place.name, place.name, true),
+  onSelect: (place) => setSpot(place.lon, place.lat, place.name, place.name, { fly: true }),
 });
-$("example").addEventListener("click", () => setSpot(EXAMPLE_SPOT.lon, EXAMPLE_SPOT.lat, EXAMPLE_SPOT.name, EXAMPLE_SPOT.phrase, true));
+$("example").addEventListener("click", () => setSpot(EXAMPLE_SPOT.lon, EXAMPLE_SPOT.lat, EXAMPLE_SPOT.name, EXAMPLE_SPOT.phrase, { fly: true }));
+$("around").addEventListener("click", (e) => e.target.closest("#clear-spot") && clearSpot());
 
 $("trees-retry").addEventListener("click", refreshTrees);
 $("forecast").addEventListener("click", async (e) => {
@@ -255,5 +285,7 @@ fetchJson("/data/trees/meta.json")
   .then((meta) => ($("trees-updated").textContent = `(Stand der Daten: ${new Date(meta.updated).toLocaleDateString("de-DE")})`))
   .catch(() => {});
 renderAll();
+const remembered = readSpot();
+if (remembered) setSpot(remembered.lon, remembered.lat, remembered.name, remembered.phrase, { restore: true });
 await loadPollen();
 await refreshTrees();
