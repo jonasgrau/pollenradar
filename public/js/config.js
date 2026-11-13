@@ -43,11 +43,14 @@ export const SEASON = {
   ambrosia: [0, 0, 0, 0, 0, 0, 0, 1, 2, 1, 0, 0],
 };
 
-// Density in the colours of the pollen clock, from few (Laub, faint) over pollen ochre to many trees (rust): [density, colour]
+// Density in one calm hue, from faint to full Laub. No ochre or rust: those read
+// as pollen severity, and density says where trees stand, not how much is flying: [density, colour]
 export const DENSITY_STOPS = [
   [0, "rgba(63,107,78,0)"],
-  [0.1, "rgba(63,107,78,0.35)"],
-  [0.4, "rgba(63,107,78,0.75)"],
-  [0.7, "#c08a2e"],
-  [1, "#9a3f1d"],
+  [0.1, "rgba(63,107,78,0.22)"],
+  [0.4, "rgba(63,107,78,0.45)"],
+  [0.75, "rgba(63,107,78,0.7)"],
+  [1, "#3f6b4e"],
 ];
+// Weight in the density of trees whose pollen is not in the air today
+export const DENSITY_QUIET_WEIGHT = 0.12;

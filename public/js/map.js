@@ -1,10 +1,21 @@
 // Map: basemap, density heatmap, tree markers, radius circle
 
-import { BASEMAP, DENSITY_STOPS, DENSITY_UNTIL, GENERA, HAMBURG } from "./config.js";
+import { BASEMAP, DENSITY_QUIET_WEIGHT, DENSITY_STOPS, DENSITY_UNTIL, GENERA, HAMBURG } from "./config.js";
 import { circlePolygon } from "./data.js";
 import { esc, shapePath } from "./ui.js";
 
 const EMPTY = { type: "FeatureCollection", features: [] };
+const INK = "#1e2a22"; // Moor, the text colour of the panel
+
+// MapLibre's own labels, in the language of the page
+const LOCALE = {
+  "Map.Title": "Karte",
+  "NavigationControl.ZoomIn": "Vergrößern",
+  "NavigationControl.ZoomOut": "Verkleinern",
+  "AttributionControl.ToggleAttribution": "Quellenangaben zeigen oder verbergen",
+  "AttributionControl.MapFeedback": "Rückmeldung zur Karte",
+  "Popup.Close": "Schließen",
+};
 
 // Marker per genus: shape in the genus colour with a white ring
 function markerImage(genus, size = 28) {
@@ -36,10 +47,17 @@ export function createMap(container, { onPick, onZoom }) {
     minZoom: 9,
     maxBounds: [[9.4, 53.25], [10.6, 53.85]],
     attributionControl: { compact: true },
+    locale: LOCALE,
   });
   map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "bottom-right");
 
   const ready = new Promise((resolve) => map.once("load", resolve)).then(() => {
+    // On phones the attribution starts folded into its (i) button; the full bar would sit on the sheet
+    if (window.matchMedia("(max-width: 640px)").matches) {
+      const attribution = map.getContainer().querySelector(".maplibregl-ctrl-attrib");
+      attribution?.classList.remove("maplibregl-compact-show");
+      attribution?.removeAttribute("open");
+    }
     for (const g of GENERA) map.addImage(`tree-${g.id}`, markerImage(g), { pixelRatio: 2 });
 
     map.addSource("trees", { type: "geojson", data: EMPTY });
@@ -51,18 +69,20 @@ export function createMap(container, { onPick, onZoom }) {
       source: "trees",
       maxzoom: DENSITY_UNTIL + 0.5,
       paint: {
+        // Trees whose pollen is not flying today barely count, so the city view follows today's forecast
+        "heatmap-weight": ["case", ["boolean", ["get", "aktiv"], true], 1, DENSITY_QUIET_WEIGHT],
         "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 9, 3, 11, 7, 13, 14],
         "heatmap-intensity": ["interpolate", ["linear"], ["zoom"], 9, 0.3, 13, 0.8],
         "heatmap-opacity": ["interpolate", ["linear"], ["zoom"], DENSITY_UNTIL - 0.5, 0.8, DENSITY_UNTIL + 0.5, 0],
         "heatmap-color": ["interpolate", ["linear"], ["heatmap-density"], ...DENSITY_STOPS.flat()],
       },
     });
-    map.addLayer({ id: "radius-fill", type: "fill", source: "radius", paint: { "fill-color": "#17181a", "fill-opacity": 0.06 } });
+    map.addLayer({ id: "radius-fill", type: "fill", source: "radius", paint: { "fill-color": INK, "fill-opacity": 0.06 } });
     map.addLayer({
       id: "radius-line",
       type: "line",
       source: "radius",
-      paint: { "line-color": "#17181a", "line-width": 2, "line-dasharray": [2, 2] },
+      paint: { "line-color": INK, "line-width": 2, "line-dasharray": [2, 2] },
     });
     map.addLayer({
       id: "trees",

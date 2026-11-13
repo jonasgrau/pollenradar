@@ -214,7 +214,7 @@ test("heroContent splits name and level while pollen is flying", () => {
   assert.equal(hero.name, "Birke");
   assert.equal(hero.level, "mittel bis hoch");
   assert.equal(alsoText(forecastFromToday(pollen, "2027-04-14"), new Set(["birke", "esche"])), "Dazu Esche gering.");
-  assert.match(heroContent(forecastFromToday(pollen, "2027-04-14"), new Set(["birke"]), true).text, /Lade die Seite in ein paar Minuten neu/);
+  assert.match(heroContent(forecastFromToday(pollen, "2027-04-14"), new Set(["birke"]), true).text, /erneut versuchen/);
 });
 
 test("dayAngle puts dates on the year ring", () => {

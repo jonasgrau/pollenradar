@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "pulsing-dot",
+        "value": "*",
+        "files": [
+          "public/index.html"
+        ],
+        "createdAt": "2026-11-13T09:10:57.456Z",
+        "reason": "Claude verified: rule comes from vendored maplibre-gl.css (GeolocateControl user-location dot); the app never adds GeolocateControl, so the dot never renders"
+      }
+    ]
+  }
+}
