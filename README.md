@@ -65,6 +65,8 @@ The address search uses the city's official address service (`POST https://api.h
 
 Zoomed out, a heatmap in one calm green (faint = few, full = many trees) shows where the selected trees cluster. Trees whose pollen is not in the air today barely count, so the city view follows today's forecast; the legend then reads "Bäume, die heute blühen". From street level on each tree is a marker in its genus colour and shape, and trees whose pollen is not in the air today are dimmed.
 
+The chosen pollen types and the last chosen spot are kept in `localStorage`, so a daily visit opens on your street; "Ort entfernen" clears the spot. On the pollen clock each tree has its own ring, while grasses and herbs share one ring (they share one colour), so the clock never has more than five rings.
+
 When none of the chosen pollen types is in season and nothing is flying, the panel shows a "Pollenpause" with the next usual start (e.g. "Birke und Esche blühen meist ab März, in rund 5 Monaten.").
 
 ## Automated checks

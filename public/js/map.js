@@ -124,9 +124,11 @@ export function createMap(container, { onPick, onZoom }) {
           features: [circlePolygon(lon, lat), { type: "Feature", geometry: { type: "Point", coordinates: [lon, lat] }, properties: {} }],
         }),
       ),
-    flyTo: (lon, lat, padding) => {
+    clearSpot: () => ready.then(() => map.getSource("radius").setData(EMPTY)),
+    // instant: jump there, e.g. to the remembered spot when the page opens
+    flyTo: (lon, lat, padding, instant = false) => {
       const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-      map.flyTo({ center: [lon, lat], zoom: 15.5, padding, animate: !reduced });
+      map.flyTo({ center: [lon, lat], zoom: 15.5, padding, animate: !reduced && !instant });
     },
   };
 }
