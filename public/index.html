@@ -37,16 +37,6 @@
   </script>
 </head>
 <body>
-  <div id="map" role="region" aria-label="Karte der Straßenbäume"></div>
-
-  <button class="locate" id="locate" type="button"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M14.6 1.4 1.6 7.1l5.6 1.7 1.7 5.6z"/></svg>Mein Standort</button>
-
-  <div class="density" id="density" aria-hidden="true">
-    <strong>Baumdichte</strong>
-    <div class="ramp"></div>
-    <div class="ramp-labels"><span>wenige</span><span>viele</span></div>
-  </div>
-
   <aside class="panel" id="panel" aria-label="Pollenflug und Bäume">
     <button class="grip" id="grip" type="button" aria-label="Bedienfeld aufziehen" aria-expanded="false" aria-controls="panel"></button>
 
@@ -56,6 +46,7 @@
         role="combobox" aria-expanded="false" aria-controls="search-results" aria-autocomplete="list"
         autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" />
       <ul class="search-results" id="search-results" role="listbox" aria-label="Suchergebnisse" hidden></ul>
+      <p class="sr-only" id="search-status" role="status"></p>
     </div>
 
     <header class="hero">
@@ -88,7 +79,7 @@
         <button class="btn" id="example" type="button">Beispiel: Birkengrund</button>
       </div>
       <p class="error" id="locate-error" hidden>Standort nicht verfügbar. Tippe stattdessen auf die Karte.</p>
-      <p class="error" id="trees-error" hidden>Die Baumdaten konnten nicht geladen werden.</p>
+      <p class="error" id="trees-error" hidden>Die Baumdaten konnten nicht geladen werden. <button class="retry" id="trees-retry" type="button">Erneut versuchen</button></p>
       <div id="around" aria-live="polite"><p class="hint">Suche eine Adresse oder tippe auf die Karte.</p></div>
     </section>
 
@@ -113,6 +104,17 @@
       </details>
     </section>
   </aside>
+
+  <!-- After the panel, so keyboard users reach search and forecast before the map controls -->
+  <div id="map" role="region" aria-label="Karte der Straßenbäume"></div>
+
+  <button class="locate" id="locate" type="button"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M14.6 1.4 1.6 7.1l5.6 1.7 1.7 5.6z"/></svg>Mein Standort</button>
+
+  <div class="density" id="density" aria-hidden="true">
+    <strong>Baumdichte</strong>
+    <div class="ramp"></div>
+    <div class="ramp-labels"><span>wenige</span><span>viele</span></div>
+  </div>
 
   <p class="map-status" id="map-status" role="status" hidden>Bäume werden geladen …</p>
 </body>

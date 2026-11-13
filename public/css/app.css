@@ -50,6 +50,10 @@ button, summary, .option { -webkit-tap-highlight-color: transparent; touch-actio
 .chip, .btn, .locate { position: relative; transition: transform 100ms ease-out; }
 .chip:active, .btn:active, .locate:active { transform: scale(0.97); }
 a { color: inherit; text-underline-offset: 2px; }
+::selection { background: rgba(63, 107, 78, 0.22); color: var(--text); }
+input { caret-color: var(--leaf); }
+/* Counts and meters line up digit for digit */
+.days, .around-text b, .spot-summary b, .clock .face-day { font-variant-numeric: tabular-nums; }
 :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
 
 #map { position: fixed; inset: 0; }
@@ -68,6 +72,8 @@ a { color: inherit; text-underline-offset: 2px; }
   background: var(--surface);
   border-radius: 28px;
   box-shadow: var(--shadow);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(30, 42, 34, 0.22) transparent;
 }
 .panel > section { padding: 16px 20px; border-top: 1px solid var(--rule); }
 
@@ -95,8 +101,10 @@ a { color: inherit; text-underline-offset: 2px; }
 .grip { display: none; }
 
 /* Hero: the pollen clock with today's reading beside it */
-.hero { padding: 28px 20px 16px 34px; }
-.hero-main { display: grid; grid-template-columns: 136px minmax(0, 1fr); gap: 28px; align-items: center; }
+/* The hero shares the sections' 20 px content edge; only the dial row is indented, to make room
+   for the "Okt" label left of the clock */
+.hero { padding: 28px 20px 16px; }
+.hero-main { padding-left: 14px; display: grid; grid-template-columns: 136px minmax(0, 1fr); gap: 28px; align-items: center; }
 .hero-copy { min-width: 0; container-type: inline-size; }
 .dial { position: relative; width: 136px; aspect-ratio: 1; }
 .clock { display: block; width: 100%; height: 100%; overflow: visible; }
@@ -146,14 +154,19 @@ h2 { font-family: var(--display); font-size: 19px; font-weight: 600; line-height
 .chip[aria-pressed="true"] .shape path { fill: var(--surface); }
 .shape { flex: none; }
 
-.days { display: grid; grid-template-columns: 96px repeat(3, 1fr); gap: 8px 10px; align-items: center; font-size: 14px; }
+/* Cells align at the top so every meter in a row sits on one line, even when a label wraps;
+   the genus name is lifted to centre on the meters */
+.days { display: grid; grid-template-columns: 96px repeat(3, 1fr); gap: 10px 10px; align-items: start; font-size: 14px; }
 .days .head { font-family: var(--display); font-weight: 500; font-size: 14px; color: var(--text-3); }
-.days .gen { display: flex; align-items: center; gap: 6px; font-family: var(--display); font-size: 15px; font-weight: 600; }
+.days .gen { display: flex; align-items: center; gap: 6px; margin-top: -6.5px; font-family: var(--display); font-size: 15px; font-weight: 600; line-height: 20px; }
 .days small { display: block; margin-top: 4px; font-size: 12px; line-height: 1.25; color: var(--text-2); }
 
 .meta { margin-top: 12px; font-size: 13px; line-height: 1.5; color: var(--text-3); }
 .hint { font-size: 15px; color: var(--text-2); }
 .error { font-size: 13px; color: var(--error); margin-bottom: 8px; }
+/* Retry inside an error line: a text button in the error colour, underlined like a link */
+.retry { border: 0; background: none; padding: 0; font: inherit; color: inherit; font-weight: 600; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+.retry-btn { margin-top: 10px; }
 
 .btns { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
 .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 13px; border-radius: 999px; border: 1px solid var(--rule); background: transparent; font-family: var(--display); font-size: 15px; font-weight: 600; cursor: pointer; }
@@ -249,7 +262,8 @@ h2 { font-family: var(--display); font-size: 19px; font-weight: 600; line-height
 }
 .density strong { display: block; margin-bottom: 6px; font-family: var(--display); font-size: 14px; font-weight: 600; color: var(--text); }
 .density.is-hidden, .density.no-trees { opacity: 0; }
-.ramp { height: 8px; border-radius: 3px; background: linear-gradient(90deg, rgba(63, 107, 78, 0.35), #3f6b4e, #c08a2e, #9a3f1d); }
+/* Same stops as DENSITY_STOPS in config.js */
+.ramp { height: 8px; border-radius: 3px; background: linear-gradient(90deg, rgba(63, 107, 78, 0.22), rgba(63, 107, 78, 0.45) 40%, rgba(63, 107, 78, 0.7) 75%, var(--leaf)); }
 .ramp-labels { display: flex; justify-content: space-between; margin-top: 4px; }
 
 /* Loading hint over the map, centred in the area next to the panel */
@@ -298,15 +312,17 @@ h2 { font-family: var(--display); font-size: 19px; font-weight: 600; line-height
   }
   .panel.is-open { max-height: 85vh; }
   /* 44 px tall hit area; it overlaps the top of the (non-interactive) clock labels */
-  .grip { display: block; position: relative; z-index: 1; width: 100%; height: 44px; margin-bottom: -26px; padding: 10px 0 0; background: none; border: 0; cursor: pointer; }
-  .grip::before { content: ""; display: block; width: 40px; height: 5px; border-radius: 3px; background: #d4d5d9; margin: 0 auto; }
-  .hero { padding: 30px 18px 12px 40px; }
-  .hero-main { grid-template-columns: 124px minmax(0, 1fr); gap: 32px; }
+  .grip { display: block; position: relative; z-index: 1; width: 100%; height: 44px; margin-bottom: -26px; padding: 10px 0 0; background: none; border: 0; cursor: grab; touch-action: none; }
+  .grip::before { content: ""; display: block; width: 40px; height: 5px; border-radius: 3px; background: rgba(30, 42, 34, 0.18); margin: 0 auto; }
+  /* Folded, the sheet shows its top and does not scroll; drag or tap the grip to open it */
+  .panel:not(.is-open) { overflow-y: hidden; }
+  .hero { padding: 30px 20px 12px; }
+  .hero-main { padding-left: 20px; grid-template-columns: 124px minmax(0, 1fr); gap: 32px; }
   .dial { width: 124px; }
 
   /* All chips stay visible: trees in the first rows, herbs after a line break. The group labels
      are only read by screen readers here; a full-width, zero-height label forces the break. */
-  .chips { gap: 6px; margin: 22px 0 0 -22px; }
+  .chips { gap: 6px; margin-top: 22px; }
   .chip { padding: 6px 10px; font-size: 14.5px; }
   .chips-label { flex-basis: 100%; height: 0; margin: -3px 0; overflow: hidden; color: transparent; }
   .chips-label:first-child { position: absolute; width: 1px; height: 1px; margin: 0; clip: rect(0 0 0 0); }
@@ -330,12 +346,15 @@ h2 { font-family: var(--display); font-size: 19px; font-weight: 600; line-height
   .level { font-size: 19px; }
   .hero-text { margin-top: 6px; font-size: 15px; }
   .locate { top: 64px; right: 12px; padding: 8px 12px; font-size: 13px; }
-  .density { top: 64px; left: 12px; right: auto; bottom: auto; width: 150px; padding: 8px 10px; }
+  /* One slim line on phones: title, ramp, nothing else; the ramp runs from light (few) to dark (many) */
+  .density { top: 64px; left: 12px; right: auto; bottom: auto; width: auto; display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-radius: 999px; }
+  .density .ramp { width: 52px; height: 6px; }
+  .density .ramp-labels { display: none; }
   /* The open sheet covers the map: the legend and the zoom buttons would only peek out under it */
   body:has(.panel.is-open) .density { opacity: 0; }
   .maplibregl-ctrl-bottom-right { bottom: calc(36vh + 4px); transition: opacity 0.2s; }
   body:has(.panel.is-open) .maplibregl-ctrl-bottom-right { opacity: 0; pointer-events: none; }
-  .density strong { font-size: 12px; }
+  .density strong { margin: 0; font-size: 12px; }
   .map-status { top: auto; bottom: calc(36vh + 12px); left: 50%; }
   .panel.is-open ~ .map-status { display: none; }
 
@@ -351,8 +370,14 @@ h2 { font-family: var(--display); font-size: 19px; font-weight: 600; line-height
   }
 }
 
+/* Desktop: the panel has its own "Mein Standort" button; the floating one is for the folded phone sheet */
+@media (min-width: 641px) {
+  .locate { display: none; }
+}
+
 /* Touch screens: every control gets a 44 px hit area, without growing visually */
 @media (pointer: coarse) {
+  .maplibregl-ctrl-group button { width: 44px; height: 44px; }
   .chip::after, .btn::after, .locate::after { content: ""; position: absolute; inset: -4px -3px; }
   .locate::after { inset: -5px; }
 }

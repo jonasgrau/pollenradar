@@ -6,8 +6,9 @@ import { esc } from "./ui.js";
 const DEBOUNCE_MS = 200;
 const MIN_LENGTH = 3;
 const SLOW_MS = 300; // only then say that the search is still running
+const TIMEOUT_MS = 8000; // then give up and say so, instead of searching forever
 
-export function setupSearch({ input, list, onSelect }) {
+export function setupSearch({ input, list, status, onSelect }) {
   let results = [];
   let active = -1;
   let timer = null;
@@ -17,6 +18,8 @@ export function setupSearch({ input, list, onSelect }) {
     results = items;
     active = -1;
     input.removeAttribute("aria-activedescendant");
+    // The list itself is not announced; the status line tells screen readers what happened
+    status.textContent = items.length ? `${items.length} Treffer, mit Pfeiltasten auswählen` : message || "";
     if (!items.length && !message) return close();
     list.innerHTML = items.length
       ? items.map((r, i) => `<li role="option" id="addr-${i}" class="option" data-index="${i}" aria-selected="false">
@@ -44,8 +47,9 @@ export function setupSearch({ input, list, onSelect }) {
 
   async function search(query) {
     controller?.abort();
-    controller = new AbortController();
+    const own = (controller = new AbortController());
     const slow = setTimeout(() => show([], "Suche …"), SLOW_MS);
+    const timeout = setTimeout(() => own.abort(new DOMException("Zeitüberschreitung", "TimeoutError")), TIMEOUT_MS);
     try {
       const res = await fetch(ADDRESS_SEARCH_URL, {
         method: "POST",
@@ -58,9 +62,11 @@ export function setupSearch({ input, list, onSelect }) {
       if (input.value.trim() !== query) return; // typed on in the meantime
       show(items, items.length ? null : "Keine Straße oder Adresse in Hamburg gefunden");
     } catch (err) {
-      if (err.name !== "AbortError") show([], "Suche gerade nicht möglich");
+      // AbortError: replaced by a newer search. A timeout or network error ends in a message.
+      if (err.name !== "AbortError") show([], "Suche gerade nicht möglich. Versuche es gleich noch einmal.");
     } finally {
       clearTimeout(slow);
+      clearTimeout(timeout);
     }
   }
 

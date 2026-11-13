@@ -61,7 +61,7 @@ export function heroContent(forecast, selected, pollenError, loading = false) {
   const chosen = POLLEN.filter((g) => selected.has(g.id));
   if (loading) return { title: "Pollenflug heute", step: 0, color: null, text: "Vorhersage wird geladen …" };
   if (pollenError) {
-    return { title: "Vorhersage nicht erreichbar", step: 0, color: null, text: "Die Bäume auf der Karte sind trotzdem da. Lade die Seite in ein paar Minuten neu." };
+    return { title: "Vorhersage nicht erreichbar", step: 0, color: null, text: "Die Bäume auf der Karte sind trotzdem da. Du kannst es unten bei der Vorhersage erneut versuchen." };
   }
   if (!chosen.length) return { title: "Wähle deine Allergien", step: 0, color: null, text: "Dann zeigen wir, was heute fliegt." };
 

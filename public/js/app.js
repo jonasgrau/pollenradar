@@ -6,6 +6,8 @@ import { alsoText, aroundHtml, chipsHtml, clockSvg, forecastHtml, heroContent, s
 
 const STORAGE_KEY = "pollenkarte.auswahl";
 const $ = (id) => document.getElementById(id);
+const phone = window.matchMedia("(max-width: 640px)");
+const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 function readSelection() {
   try {
@@ -55,7 +57,7 @@ function renderHero() {
   $("dial").insertAdjacentHTML("afterbegin", clockSvg(state.selected, state.pollenLoading ? null : state.forecast[0].date));
   // The hand sweeps from January to today once, when the forecast first arrives
   const hand = $("dial").querySelector(".hand");
-  if (hand && !handSwept && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+  if (hand && !handSwept && !reducedMotion.matches) {
     hand.classList.add("from-jan");
     requestAnimationFrame(() => requestAnimationFrame(() => hand.classList.remove("from-jan")));
   }
@@ -64,7 +66,7 @@ function renderHero() {
 
 function renderForecast() {
   $("forecast").innerHTML = state.pollenError
-    ? `<p class="hint">Die Vorhersage des DWD ist gerade nicht erreichbar. Lade die Seite in ein paar Minuten neu.</p>`
+    ? `<p class="hint">Die Vorhersage des DWD ist gerade nicht erreichbar.</p><button class="btn retry-btn" id="pollen-retry" type="button">Erneut versuchen</button>`
     : forecastHtml(state.forecast, state.selected);
   const p = state.pollen;
   $("forecast-meta").textContent = p
@@ -100,6 +102,9 @@ async function refreshTrees() {
   const request = ++treeRequest;
   const trees = GENERA.filter((g) => state.selected.has(g.id));
   $("density").classList.toggle("no-trees", !trees.length);
+  const flying = flyingToday(state.forecast);
+  const partly = trees.some((g) => flying.has(g.id)) && trees.some((g) => !flying.has(g.id));
+  $("density").querySelector("strong").textContent = partly ? "Bäume, die heute blühen" : "Baumdichte";
   const status = setTimeout(() => ($("map-status").hidden = false), STATUS_DELAY_MS);
   try {
     const datasets = await Promise.all(trees.map((g) => loadGenus(g.id)));
@@ -118,6 +123,7 @@ async function refreshTrees() {
 }
 
 async function loadPollen() {
+  state.pollenLoading = true;
   try {
     state.pollen = await fetchJson("/api/pollen");
     state.pollenError = false;
@@ -136,6 +142,16 @@ function setSpot(lon, lat, name, phrase, fly) {
   map.showSpot(lon, lat);
   if (fly) map.flyTo(lon, lat, mapPadding());
   renderAround();
+  // The answer must not hide behind the control that asked for it: the phone sheet folds down to its
+  // summary line over the map, the desktop panel scrolls the count into view
+  if (phone.matches) setSheet(false);
+  else $("around").scrollIntoView({ block: "nearest", behavior: reducedMotion.matches ? "auto" : "smooth" });
+}
+
+function setSheet(open) {
+  $("panel").classList.toggle("is-open", open);
+  $("grip").setAttribute("aria-expanded", String(open));
+  if (!open) $("panel").scrollTop = 0; // folded, it always shows the top: clock, reading, summary
 }
 
 // Events
@@ -165,7 +181,6 @@ $("locate").addEventListener("click", locate);
 $("locate-panel").addEventListener("click", locate);
 // On phones the search floats at the top of the screen. The glass panel's backdrop-filter would
 // pin a fixed child to the panel instead, so the search moves out of the panel there.
-const phone = window.matchMedia("(max-width: 640px)");
 function placeSearch() {
   const search = document.querySelector(".search");
   if (phone.matches) document.body.prepend(search);
@@ -176,13 +191,61 @@ placeSearch();
 setupSearch({
   input: $("search-input"),
   list: $("search-results"),
+  status: $("search-status"),
   onSelect: (place) => setSpot(place.lon, place.lat, place.name, place.name, true),
 });
 $("example").addEventListener("click", () => setSpot(EXAMPLE_SPOT.lon, EXAMPLE_SPOT.lat, EXAMPLE_SPOT.name, EXAMPLE_SPOT.phrase, true));
 
+$("trees-retry").addEventListener("click", refreshTrees);
+$("forecast").addEventListener("click", async (e) => {
+  if (!e.target.closest("#pollen-retry")) return;
+  renderHero();
+  renderForecast();
+  await loadPollen();
+  refreshTrees(); // the dimming of trees follows the forecast
+});
+
+// Phone sheet: tap the grip to toggle, or drag it between folded and open. The height follows the
+// finger; on release it settles on the nearer state, or on the one a quick flick points to.
+let drag = null;
+let dragged = false;
+$("grip").addEventListener("pointerdown", (e) => {
+  if (!phone.matches) return;
+  drag = { y: e.clientY, t: e.timeStamp, height: $("panel").getBoundingClientRect().height, moved: false };
+  $("grip").setPointerCapture(e.pointerId);
+});
+$("grip").addEventListener("pointermove", (e) => {
+  if (!drag) return;
+  const dy = drag.y - e.clientY;
+  if (!drag.moved && Math.abs(dy) < 6) return;
+  drag.moved = true;
+  const min = window.innerHeight * 0.2;
+  const max = window.innerHeight * 0.85;
+  $("panel").style.transition = "none";
+  $("panel").style.maxHeight = `${Math.min(max, Math.max(min, drag.height + dy))}px`;
+});
+function endDrag(e) {
+  if (!drag) return;
+  const { moved, y, t } = drag;
+  drag = null;
+  if (!moved) return;
+  dragged = true; // the click that follows this pointerup is not a tap
+  const height = $("panel").getBoundingClientRect().height;
+  const velocity = (y - e.clientY) / Math.max(1, e.timeStamp - t); // px per ms, up is positive
+  const open = Math.abs(velocity) > 0.5 ? velocity > 0 : height > window.innerHeight * 0.6;
+  $("panel").style.transition = "";
+  $("panel").style.maxHeight = "";
+  setSheet(open);
+}
+$("grip").addEventListener("pointerup", endDrag);
+$("grip").addEventListener("pointercancel", endDrag);
 $("grip").addEventListener("click", () => {
-  const open = $("panel").classList.toggle("is-open");
-  $("grip").setAttribute("aria-expanded", open);
+  if (dragged) return void (dragged = false);
+  setSheet(!$("panel").classList.contains("is-open"));
+});
+// Folded, the sheet does not scroll; keyboard focus moving into it opens it (a tap on a chip does not)
+$("panel").addEventListener("focusin", (e) => {
+  if (phone.matches && !$("panel").classList.contains("is-open") && e.target !== $("grip") && e.target.matches(":focus-visible")) setSheet(true);
 });
 
 $("chips").innerHTML = chipsHtml(state.selected);
