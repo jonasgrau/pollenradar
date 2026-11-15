@@ -262,7 +262,9 @@ function endDrag(e) {
   dragged = true; // the click that follows this pointerup is not a tap
   const height = $("panel").getBoundingClientRect().height;
   const velocity = (y - e.clientY) / Math.max(1, e.timeStamp - t); // px per ms, up is positive
-  const open = Math.abs(velocity) > 0.5 ? velocity > 0 : height > window.innerHeight * 0.6;
+  // Project where the flick would come to rest (same decay as scrolling), then pick the nearer state
+  const projected = height + velocity * 1000 * 0.998 / (1000 * (1 - 0.998));
+  const open = projected > window.innerHeight * 0.6;
   $("panel").style.transition = "";
   $("panel").style.maxHeight = "";
   setSheet(open);

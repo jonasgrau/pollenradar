@@ -1,15 +1,4 @@
-@font-face {
-  font-family: "Literata";
-  src: url("/fonts/literata.woff2") format("woff2");
-  font-weight: 200 900;
-  font-display: swap;
-}
-/* Barlow Semi Condensed for titles and labels: narrow and upright like Hamburg's street signs */
-@font-face { font-family: "Barlow Semi Condensed"; src: url("/fonts/barlow-semi-condensed-500.woff2") format("woff2"); font-weight: 500; font-display: swap; }
-@font-face { font-family: "Barlow Semi Condensed"; src: url("/fonts/barlow-semi-condensed-600.woff2") format("woff2"); font-weight: 600; font-display: swap; }
-@font-face { font-family: "Barlow Semi Condensed"; src: url("/fonts/barlow-semi-condensed-700.woff2") format("woff2"); font-weight: 700; font-display: swap; }
-
-/* White surface; Moor, Rinde and Laub from the palette of the pollen clock */
+/* System font like on iOS; white surface; Moor, Rinde and Laub from the palette of the pollen clock */
 :root {
   --surface: #ffffff;
   --soft: #f1f2f0;
@@ -28,7 +17,9 @@
   --glass: rgba(255, 255, 255, 0.78);
   --glass-edge: rgba(255, 255, 255, 0.6);
   --glass-blur: blur(20px) saturate(180%);
-  --display: "Barlow Semi Condensed", "Arial Narrow", sans-serif;
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", system-ui, "Segoe UI", Roboto, sans-serif;
+  --display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", system-ui, "Segoe UI", Roboto, sans-serif;
+  --fill: rgba(30, 42, 34, 0.07); /* quiet filled surface for chips and buttons, like iOS */
   color-scheme: light;
 }
 
@@ -36,11 +27,11 @@
 * { margin: 0; padding: 0; }
 html, body { height: 100%; }
 body {
-  font-family: "Literata", Georgia, serif;
+  font-family: var(--font);
   font-optical-sizing: auto;
   color: var(--text);
   background: var(--surface);
-  line-height: 1.55;
+  line-height: 1.45;
   -webkit-font-smoothing: antialiased;
 }
 button { font: inherit; color: inherit; }
@@ -95,8 +86,8 @@ input { caret-color: var(--leaf); }
   }
   .panel > section { border-top-color: rgba(30, 42, 34, 0.1); }
   /* Controls inside the glass are tinted, not another layer of glass */
-  .search-input { background: rgba(30, 42, 34, 0.06); border-color: transparent; }
-  .chip, .btn { border-color: rgba(30, 42, 34, 0.16); }
+  .search-input { background-color: rgba(30, 42, 34, 0.07); }
+  
 }
 .grip { display: none; }
 
@@ -104,14 +95,14 @@ input { caret-color: var(--leaf); }
 /* The hero shares the sections' 20 px content edge; only the dial row is indented, to make room
    for the "Okt" label left of the clock */
 .hero { padding: 28px 20px 16px; }
-.hero-main { padding-left: 14px; display: grid; grid-template-columns: 136px minmax(0, 1fr); gap: 28px; align-items: center; }
+.hero-main { padding-left: 14px; display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 22px; align-items: center; }
 .hero-copy { min-width: 0; container-type: inline-size; }
-.dial { position: relative; width: 136px; aspect-ratio: 1; }
+.dial { position: relative; width: 120px; aspect-ratio: 1; }
 .clock { display: block; width: 100%; height: 100%; overflow: visible; }
 .clock .track { stroke: var(--empty); }
 .clock .tick { stroke: var(--text-3); stroke-width: 1; }
-.clock .face-day { font: 600 32px var(--display); text-anchor: middle; fill: var(--text); }
-.clock .face-month { font: 400 13px "Literata", Georgia, serif; text-anchor: middle; fill: var(--text-2); }
+.clock .face-day { font: 600 32px var(--display); letter-spacing: -0.02em; text-anchor: middle; fill: var(--text); }
+.clock .face-month { font: 500 12px var(--font); text-anchor: middle; fill: var(--text-2); }
 .clock .hand { transform: rotate(var(--angle)); transition: transform 1200ms cubic-bezier(0.2, 0.7, 0.2, 1); }
 .clock .hand.from-jan { transform: rotate(0deg); transition: none; }
 .clock .hand path { stroke: var(--leaf); stroke-width: 2.4; stroke-linecap: round; }
@@ -123,42 +114,43 @@ input { caret-color: var(--leaf); }
 .q-apr { right: -21px; top: 50%; transform: translateY(-50%); }
 /* The title shrinks with its column so "Pollenpause" fits on one line; at large zoom levels
    long words hyphenate instead of pushing the panel sideways */
-h1 { font-family: var(--display); font-size: min(36px, 18cqi); font-weight: 700; letter-spacing: 0; line-height: 1.08; hyphens: auto; overflow-wrap: break-word; }
-.level { margin-top: 2px; font-family: var(--display); font-size: 22px; font-weight: 500; line-height: 1.25; color: var(--leaf); }
-.hero-text { margin-top: 10px; font-size: 16px; color: var(--text-2); }
+h1 { font-family: var(--display); font-size: min(34px, 14.5cqi); font-weight: 700; letter-spacing: -0.03em; line-height: 1.08; hyphens: auto; overflow-wrap: break-word; }
+.level { margin-top: 4px; font-family: var(--display); font-size: 19px; font-weight: 600; letter-spacing: -0.015em; line-height: 1.25; color: var(--leaf); }
+.hero-text { margin-top: 10px; font-size: 15px; letter-spacing: -0.006em; color: var(--text-2); }
 .also { margin-top: 6px; font-size: 14px; color: var(--text-3); }
 .spot-summary { display: none; }
-h2 { font-family: var(--display); font-size: 19px; font-weight: 600; line-height: 1.25; margin-bottom: 12px; }
+h2 { font-family: var(--display); font-size: 20px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; margin-bottom: 14px; }
 
 .meter { display: flex; gap: 3px; }
-.meter i { flex: 1; height: 7px; border-radius: 2px; background: var(--empty); }
+.meter i { flex: 1; height: 6px; border-radius: 3px; background: var(--empty); }
 
 .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 28px; }
-.chips-label { flex-basis: 100%; font-size: 13px; color: var(--text-3); }
+.chips-label { flex-basis: 100%; font-size: 13px; font-weight: 500; color: var(--text-3); }
 .chips-label + .chip, .chip + .chips-label { margin-top: 2px; }
 .chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 12px;
+  padding: 8px 13px;
   border-radius: 999px;
-  border: 1px solid var(--rule);
-  background: transparent;
-  font-family: var(--display);
+  border: 0;
+  background: var(--fill);
+  font-family: var(--font);
   font-size: 15px;
   font-weight: 600;
-  color: var(--text-2);
+  letter-spacing: -0.01em;
+  color: var(--text);
   cursor: pointer;
 }
-.chip[aria-pressed="true"] { background: var(--text); border-color: var(--text); color: var(--surface); }
+.chip[aria-pressed="true"] { background: var(--text); color: var(--surface); }
 .chip[aria-pressed="true"] .shape path { fill: var(--surface); }
 .shape { flex: none; }
 
 /* Cells align at the top so every meter in a row sits on one line, even when a label wraps;
    the genus name is lifted to centre on the meters */
 .days { display: grid; grid-template-columns: 96px repeat(3, 1fr); gap: 10px 10px; align-items: start; font-size: 14px; }
-.days .head { font-family: var(--display); font-weight: 500; font-size: 14px; color: var(--text-3); }
-.days .gen { display: flex; align-items: center; gap: 6px; margin-top: -6.5px; font-family: var(--display); font-size: 15px; font-weight: 600; line-height: 20px; }
+.days .head { font-family: var(--font); font-weight: 500; font-size: 14px; color: var(--text-3); }
+.days .gen { display: flex; align-items: center; gap: 6px; margin-top: -6.5px; font-family: var(--font); font-size: 15px; font-weight: 600; letter-spacing: -0.01em; line-height: 20px; }
 .days small { display: block; margin-top: 4px; font-size: 12px; line-height: 1.25; color: var(--text-2); }
 
 .meta { margin-top: 12px; font-size: 13px; line-height: 1.5; color: var(--text-3); }
@@ -169,8 +161,8 @@ h2 { font-family: var(--display); font-size: 19px; font-weight: 600; line-height
 .retry-btn { margin-top: 10px; }
 
 .btns { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
-.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 13px; border-radius: 999px; border: 1px solid var(--rule); background: transparent; font-family: var(--display); font-size: 15px; font-weight: 600; cursor: pointer; }
-.btn.primary { background: var(--text); border-color: var(--text); color: var(--surface); }
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 14px; border-radius: 999px; border: 0; background: var(--fill); font-family: var(--font); font-size: 15px; font-weight: 600; letter-spacing: -0.01em; cursor: pointer; }
+.btn.primary { background: var(--text); color: var(--surface); }
 .icon { width: 14px; height: 14px; flex: none; fill: currentColor; }
 .around-text { font-size: 15px; line-height: 1.65; color: var(--text-2); }
 .around-text b { color: var(--text); font-weight: 650; }
@@ -181,8 +173,8 @@ h2 { font-family: var(--display); font-size: 19px; font-weight: 600; line-height
 .panel details summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; margin: -14px 0; padding: 14px 0; }
 .panel details summary::-webkit-details-marker { display: none; }
 .panel details summary h2 { margin: 0; }
-.panel details summary::after { content: "+"; font-size: 20px; line-height: 1; color: var(--text-3); }
-.panel details[open] summary::after { content: "–"; }
+.panel details summary::after { content: ""; width: 8px; height: 8px; margin-right: 4px; border-right: 2px solid var(--text-3); border-bottom: 2px solid var(--text-3); transform: rotate(45deg) translate(-2px, -2px); transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1); }
+.panel details[open] summary::after { transform: rotate(225deg) translate(-2px, -2px); }
 
 .about { margin-top: 14px; font-size: 14px; color: var(--text-2); display: grid; gap: 10px; }
 .about ul { padding-left: 18px; display: grid; gap: 4px; }
@@ -193,10 +185,10 @@ h2 { font-family: var(--display); font-size: 19px; font-weight: 600; line-height
 .search { position: relative; padding: 16px 20px 0; }
 .search-input {
   width: 100%;
-  padding: 10px 14px;
-  border: 1px solid var(--rule);
+  padding: 10px 14px 10px 38px;
+  border: 0;
   border-radius: 12px;
-  background: var(--soft);
+  background: var(--fill) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23625f54' stroke-width='1.7' stroke-linecap='round'%3E%3Ccircle cx='6.8' cy='6.8' r='4.8'/%3E%3Cpath d='m10.4 10.4 3.6 3.6'/%3E%3C/svg%3E") no-repeat 13px 50% / 16px;
   font: inherit;
   font-size: 15px;
   color: var(--text);
@@ -204,7 +196,7 @@ h2 { font-family: var(--display); font-size: 19px; font-weight: 600; line-height
   appearance: none;
 }
 .search-input::placeholder { color: var(--text-3); }
-.search-input:focus { outline: 2px solid var(--focus); outline-offset: 0; background: var(--surface); }
+.search-input:focus { outline: 2px solid var(--focus); outline-offset: 0; background-color: var(--surface); }
 .search-results {
   position: absolute;
   z-index: 5;
@@ -221,7 +213,7 @@ h2 { font-family: var(--display); font-size: 19px; font-weight: 600; line-height
 }
 .search-results .option { display: flex; justify-content: space-between; gap: 12px; padding: 10px 14px; font-size: 14px; cursor: pointer; }
 .search-results .option small { color: var(--text-3); font-size: 12px; }
-.search-results .option:hover, .search-results .option[aria-selected="true"] { background: var(--soft); }
+.search-results .option:hover, .search-results .option[aria-selected="true"] { background: var(--fill); }
 .search-results .message { padding: 10px 14px; font-size: 14px; color: var(--text-2); }
 
 /* Map overlays */
@@ -239,7 +231,7 @@ h2 { font-family: var(--display); font-size: 19px; font-weight: 600; line-height
   border-radius: 999px;
   background: var(--surface);
   color: var(--text);
-  font-family: var(--display);
+  font-family: var(--font);
   font-size: 15px;
   font-weight: 600;
   box-shadow: var(--shadow-small);
@@ -261,7 +253,7 @@ h2 { font-family: var(--display); font-size: 19px; font-weight: 600; line-height
   color: var(--text-2);
   transition: opacity 0.2s;
 }
-.density strong { display: block; margin-bottom: 6px; font-family: var(--display); font-size: 14px; font-weight: 600; color: var(--text); }
+.density strong { display: block; margin-bottom: 6px; font-family: var(--font); font-size: 14px; font-weight: 600; color: var(--text); }
 .density.is-hidden, .density.no-trees { opacity: 0; }
 /* Same stops as DENSITY_STOPS in config.js */
 .ramp { height: 8px; border-radius: 3px; background: linear-gradient(90deg, rgba(63, 107, 78, 0.22), rgba(63, 107, 78, 0.45) 40%, rgba(63, 107, 78, 0.7) 75%, var(--leaf)); }
@@ -295,7 +287,7 @@ h2 { font-family: var(--display); font-size: 19px; font-weight: 600; line-height
   .density { color: var(--text); }
 }
 
-.maplibregl-popup-content { font: 14px/1.45 "Literata", Georgia, serif; color: var(--text); background: var(--surface); border-radius: 10px; padding: 10px 12px; }
+.maplibregl-popup-content { font: 14px/1.45 var(--font); color: var(--text); background: var(--surface); border-radius: 10px; padding: 10px 12px; }
 .maplibregl-popup-tip { border-top-color: var(--surface) !important; border-bottom-color: var(--surface) !important; }
 .maplibregl-popup-content span { color: var(--text-2); }
 
@@ -309,7 +301,7 @@ h2 { font-family: var(--display); font-size: 19px; font-weight: 600; line-height
     max-height: 36vh;
     border-radius: 28px 28px 0 0;
     padding-bottom: env(safe-area-inset-bottom);
-    transition: max-height 0.25s ease;
+    transition: max-height 0.45s cubic-bezier(0.32, 0.72, 0, 1); /* iOS sheet curve: fast start, long soft landing */
   }
   .panel.is-open { max-height: 85vh; }
   /* 44 px tall hit area; it overlaps the top of the (non-interactive) clock labels */
@@ -318,8 +310,8 @@ h2 { font-family: var(--display); font-size: 19px; font-weight: 600; line-height
   /* Folded, the sheet shows its top and does not scroll; drag or tap the grip to open it */
   .panel:not(.is-open) { overflow-y: hidden; }
   .hero { padding: 30px 20px 12px; }
-  .hero-main { padding-left: 20px; grid-template-columns: 124px minmax(0, 1fr); gap: 32px; }
-  .dial { width: 124px; }
+  .hero-main { padding-left: 20px; grid-template-columns: 112px minmax(0, 1fr); gap: 30px; }
+  .dial { width: 112px; }
 
   /* All chips stay visible: trees in the first rows, herbs after a line break. The group labels
      are only read by screen readers here; a full-width, zero-height label forces the break. */
@@ -341,10 +333,10 @@ h2 { font-family: var(--display); font-size: 19px; font-weight: 600; line-height
   .spot-summary b { font-weight: 700; }
   .spot-summary span { display: inline-flex; align-items: center; gap: 4px; }
   .search { position: fixed; z-index: 3; top: 12px; left: 12px; right: 12px; padding: 0; }
-  .search-input { min-height: 44px; background: var(--surface); box-shadow: var(--shadow-small); border-color: transparent; padding-right: 14px; }
+  .search-input { min-height: 44px; background-color: var(--surface); box-shadow: var(--shadow-small); padding-right: 14px; }
   .search-results { left: 0; right: 0; }
-  h1 { font-size: min(32px, 18cqi); }
-  .level { font-size: 19px; }
+  h1 { font-size: min(32px, 14.5cqi); }
+  .level { font-size: 18px; }
   .hero-text { margin-top: 6px; font-size: 15px; }
   .locate { top: 64px; right: 12px; padding: 8px 12px; font-size: 13px; }
   /* One slim line on phones: title, ramp, nothing else; the ramp runs from light (few) to dark (many) */
@@ -362,7 +354,7 @@ h2 { font-family: var(--display); font-size: 19px; font-weight: 600; line-height
   @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
     /* Solid again while typing, so the results list below never sits on glass */
     .search-input:not(:focus) {
-      background: var(--glass);
+      background-color: var(--glass);
       -webkit-backdrop-filter: var(--glass-blur);
       backdrop-filter: var(--glass-blur);
       box-shadow: inset 0 1px 0 var(--glass-edge), var(--shadow-small);
@@ -393,11 +385,11 @@ h2 { font-family: var(--display); font-size: 19px; font-weight: 600; line-height
 /* Glass becomes solid when people ask for less transparency or more contrast */
 @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
   .panel { background: var(--surface) !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
-  .search-input { background: var(--soft) !important; }
+  .search-input { background-color: var(--soft) !important; }
   .locate, .density, .map-status { background: var(--surface) !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
 }
 @media (prefers-reduced-transparency: reduce) and (max-width: 640px), (prefers-contrast: more) and (max-width: 640px) {
-  .search-input:not(:focus) { background: var(--surface) !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+  .search-input:not(:focus) { background-color: var(--surface) !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
 }
 @media (prefers-contrast: more) {
   :root { --text-2: #3d3b33; --text-3: #48463d; --rule: #84877e; }
